@@ -20,7 +20,7 @@ Society360 is developed using a modern full stack JavaScript-based architecture,
 - Component-based architecture
 
 ---
-
+npx create-next-app@latest
 ### Tailwind CSS
 
 - Utility-first CSS framework
