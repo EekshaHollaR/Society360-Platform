@@ -79,7 +79,7 @@ CREATE TABLE visitor_logs (
     entry_gate VARCHAR(50),
     approved_by_user_id UUID REFERENCES users(id), -- Resident who approved
     security_guard_id UUID REFERENCES users(id), -- Guard who logged entry
-    status VARCHAR(20) DEFAULT 'checked_in' CHECK (status IN ('checked_in', 'checked_out', 'denied'))
+    status VARCHAR(20) DEFAULT 'checked_in' CHECK (status IN ('pending', 'approved', 'checked_in', 'checked_out', 'denied'))
 );
 
 CREATE INDEX idx_visitors_unit ON visitor_logs(unit_id);

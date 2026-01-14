@@ -4,6 +4,7 @@ const helmet = require('helmet');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const visitorRoutes = require('./routes/visitorRoutes');
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json()); // Body parser
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/visitors', visitorRoutes);
 
 // Base route
 app.get('/', (req, res) => {
