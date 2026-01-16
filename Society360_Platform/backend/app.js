@@ -18,6 +18,7 @@ app.use(express.json()); // Body parser
 app.use('/api/auth', authRoutes);
 app.use('/api/visitors', visitorRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/finance', require('./routes/financeRoutes'));
 
 // Base route
 app.get('/', (req, res) => {
