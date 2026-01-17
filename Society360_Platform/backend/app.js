@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
 const visitorRoutes = require('./routes/visitorRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const communicationRoutes = require('./routes/communicationRoutes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/visitors', visitorRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/finance', require('./routes/financeRoutes'));
+app.use('/api/communication', communicationRoutes);
 
 // Base route
 app.get('/', (req, res) => {
