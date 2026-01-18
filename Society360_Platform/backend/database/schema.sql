@@ -160,6 +160,23 @@ CREATE TABLE audit_logs (
 CREATE INDEX idx_audit_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_resource ON audit_logs(resource_type, resource_id);
 
+-- SYSTEM CONFIGURATION
+CREATE TABLE system_config (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    config_key VARCHAR(100) UNIQUE NOT NULL,
+    config_value TEXT NOT NULL,
+    category VARCHAR(50) NOT NULL CHECK (category IN ('billing', 'security', 'notifications', 'general', 'maintenance')),
+    description TEXT,
+    data_type VARCHAR(20) DEFAULT 'string' CHECK (data_type IN ('string', 'number', 'boolean', 'json')),
+    updated_by UUID REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_config_category ON system_config(category);
+CREATE INDEX idx_config_key ON system_config(config_key);
+
+
 -- AUTOMATIC UPDATED_AT TRIGGER
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

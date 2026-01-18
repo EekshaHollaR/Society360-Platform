@@ -21,6 +21,8 @@ app.use('/api/visitors', visitorRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/finance', require('./routes/financeRoutes'));
 app.use('/api/communication', communicationRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
+
 
 // Base route
 app.get('/', (req, res) => {
