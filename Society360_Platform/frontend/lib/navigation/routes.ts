@@ -1,0 +1,143 @@
+import {
+    FiHome,
+    FiUsers,
+    FiGrid,
+    FiFileText,
+    FiSettings,
+    FiActivity,
+    FiTool,
+    FiUserCheck,
+    FiBell,
+    FiCreditCard,
+    FiClipboard
+} from 'react-icons/fi';
+
+export interface NavItem {
+    name: string;
+    href: string;
+    icon: any;
+    roles: string[];
+}
+
+export const navigationConfig: NavItem[] = [
+    // Admin Routes
+    {
+        name: 'Dashboard',
+        href: '/dashboard/admin',
+        icon: FiHome,
+        roles: ['admin'],
+    },
+    {
+        name: 'User Management',
+        href: '/dashboard/admin/users',
+        icon: FiUsers,
+        roles: ['admin'],
+    },
+    {
+        name: 'Unit Management',
+        href: '/dashboard/admin/units',
+        icon: FiGrid,
+        roles: ['admin'],
+    },
+    {
+        name: 'Reports',
+        href: '/dashboard/admin/reports',
+        icon: FiFileText,
+        roles: ['admin'],
+    },
+    {
+        name: 'System Config',
+        href: '/dashboard/admin/config',
+        icon: FiSettings,
+        roles: ['admin'],
+    },
+    {
+        name: 'Audit Logs',
+        href: '/dashboard/admin/audit',
+        icon: FiActivity,
+        roles: ['admin'],
+    },
+
+    // Staff Routes
+    {
+        name: 'Dashboard',
+        href: '/dashboard/staff',
+        icon: FiHome,
+        roles: ['staff'],
+    },
+    {
+        name: 'Maintenance',
+        href: '/dashboard/staff/maintenance',
+        icon: FiTool,
+        roles: ['staff'],
+    },
+    {
+        name: 'Visitors',
+        href: '/dashboard/staff/visitors',
+        icon: FiUserCheck,
+        roles: ['staff'],
+    },
+    {
+        name: 'Announcements',
+        href: '/dashboard/staff/announcements',
+        icon: FiBell,
+        roles: ['staff'],
+    },
+
+    // Resident Routes
+    {
+        name: 'Dashboard',
+        href: '/dashboard/resident',
+        icon: FiHome,
+        roles: ['resident'],
+    },
+    {
+        name: 'My Unit',
+        href: '/dashboard/resident/unit',
+        icon: FiGrid,
+        roles: ['resident'],
+    },
+    {
+        name: 'Maintenance',
+        href: '/dashboard/resident/maintenance',
+        icon: FiTool,
+        roles: ['resident'],
+    },
+    {
+        name: 'Bills & Payments',
+        href: '/dashboard/resident/bills',
+        icon: FiCreditCard,
+        roles: ['resident'],
+    },
+    {
+        name: 'Visitors',
+        href: '/dashboard/resident/visitors',
+        icon: FiUserCheck,
+        roles: ['resident'],
+    },
+    {
+        name: 'Announcements',
+        href: '/dashboard/resident/announcements',
+        icon: FiBell,
+        roles: ['resident'],
+    },
+];
+
+/**
+ * Get navigation items for a specific role
+ */
+export const getNavigationForRole = (role: string): NavItem[] => {
+    return navigationConfig.filter((item) => item.roles.includes(role));
+};
+
+/**
+ * Get dashboard route for role
+ */
+export const getDashboardRoute = (role: string): string => {
+    const roleMap: Record<string, string> = {
+        admin: '/dashboard/admin',
+        staff: '/dashboard/staff',
+        resident: '/dashboard/resident',
+    };
+    return roleMap[role] || '/dashboard/resident';
+};
