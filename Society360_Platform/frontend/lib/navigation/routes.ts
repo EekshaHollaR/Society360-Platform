@@ -46,6 +46,12 @@ export const navigationConfig: NavItem[] = [
         roles: ['admin'],
     },
     {
+        name: 'Finance',
+        href: '/dashboard/admin/finance',
+        icon: FiCreditCard,
+        roles: ['admin'],
+    },
+    {
         name: 'System Config',
         href: '/dashboard/admin/config',
         icon: FiSettings,
