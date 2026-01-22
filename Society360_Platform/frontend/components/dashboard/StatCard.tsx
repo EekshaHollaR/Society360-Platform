@@ -10,7 +10,7 @@ interface StatCardProps {
         label: string;
         isPositive: boolean;
     };
-    color?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error';
+    color?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'info';
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -27,6 +27,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         success: 'bg-green-50 text-green-600',
         warning: 'bg-yellow-50 text-yellow-600',
         error: 'bg-red-50 text-red-600',
+        info: 'bg-cyan-50 text-cyan-600',
     };
 
     return (

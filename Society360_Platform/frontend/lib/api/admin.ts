@@ -40,7 +40,7 @@ export const adminApi = {
                     { id: '3', first_name: 'Jane', last_name: 'Smith', email: 'staff@society360.com', role: 'staff', status: 'active', created_at: '2023-03-10' },
                     { id: '4', first_name: 'Bob', last_name: 'Wilson', email: 'bob@example.com', role: 'resident', status: 'inactive', unit_number: 'B-202', created_at: '2023-04-05' },
                 ], meta: { total: 4, page: 1, limit: 10 }
-            }
+            } as any
         };
     },
 
@@ -81,7 +81,7 @@ export const adminApi = {
                         { id: '2', user: 'Alice Brown', amount: 1500, date: '2024-01-19', status: 'paid' },
                         { id: '3', user: 'Bob Wilson', amount: 1500, date: '2024-01-18', status: 'pending' },
                     ]
-                }
+                } as FinanceStats
             }
         };
     },
@@ -96,7 +96,7 @@ export const adminApi = {
                     { key: 'maintenance_fee', value: '1500', category: 'billing', description: 'Monthly maintenance amount' },
                     { key: 'visitor_approval_required', value: 'true', category: 'security', description: 'Require resident approval for filtered visitors' },
                     { key: 'support_email', value: 'support@society360.com', category: 'general', description: 'Contact email for support' },
-                ]
+                ] as SystemConfig[]
             }
         };
     },

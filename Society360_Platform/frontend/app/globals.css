@@ -1,5 +1,6 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
 
 :root {
   /* Civora Brand Colors */
@@ -9,13 +10,13 @@
   --secondary: #0D9488;
   --secondary-light: #14B8A6;
   --accent: #F59E0B;
-  
+
   /* Status Colors */
   --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
   --info: #3B82F6;
-  
+
   /* Neutral Colors */
   --background: #FFFFFF;
   --foreground: #111827;
@@ -29,7 +30,7 @@
   --gray-700: #374151;
   --gray-800: #1F2937;
   --gray-900: #111827;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -101,4 +102,3 @@ body {
   background-color: var(--primary-light);
   color: white;
 }
-
