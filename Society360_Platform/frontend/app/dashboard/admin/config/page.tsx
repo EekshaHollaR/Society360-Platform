@@ -34,7 +34,7 @@ export default function ConfigPage() {
         loadConfig();
     }, [setValue]);
 
-    const onSubmit = async (data: any) => {
+    const onSubmit = async (data: Record<string, string>) => {
         try {
             // In a real scenario, loop through changed fields and update
             // Here just mocking a bulk update success
@@ -90,7 +90,7 @@ export default function ConfigPage() {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id as any)}
+                                    onClick={() => setActiveTab(tab.id as 'general' | 'billing' | 'security')}
                                     className={`
                     w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors
                     ${activeTab === tab.id

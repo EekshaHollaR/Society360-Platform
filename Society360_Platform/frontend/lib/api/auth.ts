@@ -39,7 +39,9 @@ api.interceptors.response.use(
     }
 );
 
-export interface LoginCredentials {
+export interface RegisterCredentials {
+    first_name: string;
+    last_name: string;
     email: string;
     password: string;
 }
@@ -65,6 +67,14 @@ export interface AuthResponse {
 // Auth API functions
 export const authApi = {
     /**
+     * Register user
+     */
+    register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
+        const response = await api.post<AuthResponse>('/auth/register', credentials);
+        return response.data;
+    },
+
+    /**
      * Login user
      */
     login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -89,6 +99,14 @@ export const authApi = {
     },
 
     /**
+     * Get current user profile
+     */
+    getMe: async (): Promise<User> => {
+        const response = await api.get<{ success: boolean; user: User }>('/auth/me');
+        return response.data.user;
+    },
+
+    /**
      * Get current user from token
      */
     getCurrentUser: (): User | null => {
@@ -102,16 +120,12 @@ export const authApi = {
         }
         return null;
     },
-
-    /**
-     * Check if user is authenticated
-     */
     isAuthenticated: (): boolean => {
         const token = localStorage.getItem('token');
         if (!token) return false;
 
         try {
-            const decoded: any = jwtDecode(token);
+            const decoded = jwtDecode(token) as { exp: number };
             const currentTime = Date.now() / 1000;
             return decoded.exp > currentTime;
         } catch {

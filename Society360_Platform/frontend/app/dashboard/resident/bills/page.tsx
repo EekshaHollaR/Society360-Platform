@@ -85,7 +85,7 @@ export default function BillsPage() {
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-[var(--gray-900)]">Pending Bills</h3>
                         {outstandingBills.length === 0 ? (
-                            <p className="text-[var(--gray-500)] italic">No pending bills. You're all caught up!</p>
+                            <p className="text-[var(--gray-500)] italic">No pending bills. You&apos;re all caught up!</p>
                         ) : (
                             outstandingBills.map((bill) => (
                                 <Card key={bill.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4 border-l-4 border-l-orange-400">

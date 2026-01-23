@@ -47,8 +47,9 @@ export default function LoginPage() {
                 setError(response.message || 'Login failed');
                 toast.error(response.message || 'Login failed');
             }
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'An error occurred during login';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const errorMessage = error.response?.data?.message || 'An error occurred during login';
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {

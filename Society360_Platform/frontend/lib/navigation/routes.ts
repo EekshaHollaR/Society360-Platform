@@ -1,3 +1,4 @@
+import { IconType } from 'react-icons';
 import {
     FiHome,
     FiUsers,
@@ -15,7 +16,7 @@ import {
 export interface NavItem {
     name: string;
     href: string;
-    icon: any;
+    icon: IconType;
     roles: string[];
 }
 
