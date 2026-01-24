@@ -11,12 +11,15 @@ import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { residentApi, Visitor } from '@/lib/api/resident';
+import { useAuthStore } from '@/lib/store/authStore';
 
 export default function VisitorsPage() {
     const [visitors, setVisitors] = useState<Visitor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { register, handleSubmit, reset, formState: { errors } } = useForm<Partial<Visitor>>();
+    const { user } = useAuthStore();
+    const unitId = user?.units?.[0]?.id;
 
     const fetchVisitors = async () => {
         try {
@@ -36,8 +39,13 @@ export default function VisitorsPage() {
     }, []);
 
     const onSubmit = async (data: Partial<Visitor>) => {
+        if (!unitId) {
+            toast.error('No unit associated with this account');
+            return;
+        }
+
         try {
-            const response = await residentApi.preApproveVisitor(data);
+            const response = await residentApi.preApproveVisitor({ ...data, unit_id: unitId });
             if (response.data.success) {
                 toast.success('Visitor pre-approved successfully');
                 setIsModalOpen(false);

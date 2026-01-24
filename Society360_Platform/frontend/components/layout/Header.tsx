@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { FiMenu, FiBell, FiLogOut } from 'react-icons/fi';
 import { useAuthStore } from '@/lib/store/authStore';
 import { Button } from '@/components/ui/Button';
+import { residentApi } from '@/lib/api/resident';
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -10,6 +12,26 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     const { user, logout } = useAuthStore();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const response = await residentApi.getNotifications();
+                // Assuming response.data is the array directly or inside a property.
+                // notificationController.js says `res.json(notifications);`
+                if (Array.isArray(response.data)) {
+                    const count = response.data.filter((n: any) => !n.read_at && !n.is_read).length; // check field name
+                    setUnreadCount(count);
+                }
+            } catch (e) {
+                console.error('Failed to fetch notifications', e);
+            }
+        };
+        if (user) {
+            fetchNotifications();
+        }
+    }, [user]);
 
     return (
         <header className="h-16 bg-white border-b border-[var(--gray-200)] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
@@ -42,7 +64,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 {/* Notifications */}
                 <button className="relative p-2 text-[var(--gray-600)] hover:text-[var(--gray-900)] hover:bg-[var(--gray-100)] rounded-lg transition-all">
                     <FiBell size={20} />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--error)] rounded-full"></span>
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--error)] rounded-full"></span>
+                    )}
                 </button>
 
                 {/* Logout Button */}

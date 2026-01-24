@@ -12,6 +12,7 @@ export interface Visitor {
     check_in_time?: string;
     check_out_time?: string;
     created_at?: string;
+    unit_id?: string;
 }
 
 export interface Ticket {
@@ -23,6 +24,7 @@ export interface Ticket {
     description: string;
     created_at: string;
     updated_at?: string;
+    unit_id?: string;
 }
 
 export interface Bill {
@@ -77,12 +79,12 @@ export const residentApi = {
     },
 
     // Finance/Bills
-    getBills: async () => {
-        return api.get('/finance');
+    getBills: async (unitId: string) => {
+        return api.get('/finance', { params: { unit_id: unitId } });
     },
 
-    payBill: async (billId: string, paymentMethod: string) => {
-        return api.post('/finance/pay', { billId, paymentMethod });
+    payBill: async (billId: string, amount: number, paymentMethod: string) => {
+        return api.post('/finance/pay', { bill_id: billId, amount, payment_method: paymentMethod });
     },
 
     getReceipt: async (paymentId: string) => {

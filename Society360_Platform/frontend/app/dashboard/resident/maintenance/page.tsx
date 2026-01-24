@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { residentApi, Ticket } from '@/lib/api/resident';
+import { useAuthStore } from '@/lib/store/authStore';
 
 export default function MaintenancePage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -35,9 +36,17 @@ export default function MaintenancePage() {
         fetchTickets();
     }, []);
 
+    const { user } = useAuthStore();
+    const unitId = user?.units?.[0]?.id;
+
     const onSubmit = async (data: Partial<Ticket>) => {
+        if (!unitId) {
+            toast.error('No unit associated with this account');
+            return;
+        }
+
         try {
-            const response = await residentApi.createTicket(data);
+            const response = await residentApi.createTicket({ ...data, unit_id: unitId });
             if (response.data.success) {
                 toast.success('Ticket created successfully');
                 setIsModalOpen(false);

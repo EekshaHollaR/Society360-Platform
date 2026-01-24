@@ -46,6 +46,16 @@ export interface RegisterCredentials {
     password: string;
 }
 
+export interface Unit {
+    id: string;
+    block_id: string;
+    unit_number: string;
+    floor_number: number;
+    type: string;
+    status: string;
+    resident_type?: string;
+}
+
 export interface User {
     id: string;
     full_name?: string;
@@ -55,6 +65,7 @@ export interface User {
     role: string;
     phone_number?: string;
     created_at?: string;
+    units?: Unit[];
 }
 
 export interface AuthResponse {

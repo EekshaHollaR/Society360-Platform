@@ -81,12 +81,25 @@ const loginUser = async (req, res) => {
     }
 };
 
+const Unit = require('../models/unitModel');
+
 // @desc    Get current user profile
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
     if (req.user) {
-        res.json(req.user);
+        try {
+            const units = await Unit.findUnitsByUser(req.user.id);
+            // Convert to plain object to avoid mutation issues if req.user is a mongoose doc (though here it seems to be from middleware which might be plain or not)
+            // Assuming req.user is the user object.
+            // If req.user is from JWT payload, it might be minimal. If from DB in middleware, it's full.
+            // Middleware usually fetches full user.
+            const userResponse = { ...req.user, units };
+            res.json(userResponse);
+        } catch (error) {
+            console.error('Error fetching user units:', error);
+            res.status(500).json({ message: 'Server error fetching user details' });
+        }
     } else {
         res.status(404).json({ message: 'User not found' });
     }
