@@ -8,12 +8,30 @@ const visitorRoutes = require('./routes/visitorRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const communicationRoutes = require('./routes/communicationRoutes');
 
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+
 const app = express();
 
-// Middleware
-app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Body parser
+// Security Middleware
+app.use(helmet()); // Sets various security headers
+app.use(hpp()); // Prevent HTTP Parameter Pollution attacks
+
+// Rate limiting to prevent brute-force/DDoS
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api/', limiter);
+
+// CORS configuration - be specific in production
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true
+}));
+
+app.use(express.json({ limit: '10kb' })); // Body parser with limit to prevent large payload attacks
 
 // Mount Routes
 app.use('/api/auth', authRoutes);

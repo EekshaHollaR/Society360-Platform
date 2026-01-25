@@ -5,8 +5,11 @@ const authorize = (...roles) => {
         }
 
         // Check if user role is included in allowed roles
-        // We assume roles are stored as strings (e.g., 'Admin', 'Resident', 'Staff')
-        if (!roles.includes(req.user.role)) {
+        // We handle roles case-insensitively
+        const userRole = req.user.role.toLowerCase();
+        const allowedRoles = roles.map(role => role.toLowerCase());
+
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({
                 message: `User role ${req.user.role} is not authorized to access this route`
             });

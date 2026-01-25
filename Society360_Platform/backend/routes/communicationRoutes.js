@@ -22,16 +22,44 @@ const {
     markNotificationRead
 } = require('../controllers/notificationController');
 
+const { check, validationResult } = require('express-validator');
+
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+};
+
 // Announcement routes
-router.post('/announcements', protect, authorize('Admin'), createAnnouncement);
+router.post(
+    '/announcements',
+    protect,
+    authorize('admin'),
+    [
+        check('title', 'Title is required').not().isEmpty(),
+        check('content', 'Content is required').not().isEmpty(),
+        validate
+    ],
+    createAnnouncement
+);
 router.get('/announcements', protect, getAnnouncements);
-router.delete('/announcements/:id', protect, authorize('Admin'), deleteAnnouncement);
+router.delete('/announcements/:id', protect, authorize('admin'), deleteAnnouncement);
 
 // Message board routes
-router.post('/messages', protect, postMessage);
+router.post(
+    '/messages',
+    protect,
+    [
+        check('content', 'Message content is required').not().isEmpty(),
+        validate
+    ],
+    postMessage
+);
 router.get('/messages', protect, getMessages);
 router.delete('/messages/:id', protect, deleteMessage);
-router.put('/messages/:id/flag', protect, authorize('Admin'), flagMessage);
+router.put('/messages/:id/flag', protect, authorize('admin'), flagMessage);
 
 // Notification routes
 router.get('/notifications', protect, getUserNotifications);

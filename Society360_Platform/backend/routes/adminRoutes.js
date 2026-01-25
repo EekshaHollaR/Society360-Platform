@@ -11,6 +11,15 @@ const UnitController = require('../controllers/unitController');
 const ReportController = require('../controllers/reportController');
 const ConfigController = require('../controllers/configController');
 const AuditController = require('../controllers/auditController');
+const { check, validationResult } = require('express-validator');
+
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+};
 
 // Apply authentication and admin authorization to all routes
 router.use(protect);
@@ -23,7 +32,17 @@ router.get('/users/stats', AdminController.getUserStats);
 // User CRUD
 router.get('/users', AdminController.getAllUsers);
 router.get('/users/:id', AdminController.getUserById);
-router.post('/users', AdminController.createUser);
+router.post(
+    '/users',
+    [
+        check('first_name', 'First name is required').not().isEmpty(),
+        check('last_name', 'Last name is required').not().isEmpty(),
+        check('email', 'Valid email is required').isEmail(),
+        check('role', 'Role is required').isIn(['admin', 'resident', 'staff']),
+        validate
+    ],
+    AdminController.createUser
+);
 router.put('/users/:id', AdminController.updateUser);
 router.delete('/users/:id', AdminController.deleteUser);
 
