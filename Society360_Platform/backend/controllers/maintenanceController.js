@@ -1,6 +1,7 @@
 const MaintenanceTicket = require('../models/maintenanceModel');
 const Unit = require('../models/unitModel');
 const User = require('../models/userModel');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 const MaintenanceController = {
     createTicket: async (req, res) => {
@@ -25,6 +26,9 @@ const MaintenanceController = {
                 priority
             });
 
+            // Log audit
+            await logAudit(requesterId, AUDIT_ACTIONS.TICKET_CREATED, 'maintenance_tickets', ticket.id, { title, category, priority }, req);
+
             res.status(201).json(ticket);
         } catch (error) {
             console.error(error);
@@ -48,6 +52,9 @@ const MaintenanceController = {
                 return res.status(404).json({ message: 'Ticket not found' });
             }
 
+            // Log audit
+            await logAudit(req.user.id, AUDIT_ACTIONS.TICKET_ASSIGNED, 'maintenance_tickets', id, { assigned_to: staff_id }, req);
+
             res.json(ticket);
         } catch (error) {
             console.error(error);
@@ -70,6 +77,10 @@ const MaintenanceController = {
             if (!ticket) {
                 return res.status(404).json({ message: 'Ticket not found' });
             }
+
+            // Log audit
+            const action = status === 'resolved' ? AUDIT_ACTIONS.TICKET_RESOLVED : AUDIT_ACTIONS.TICKET_UPDATED;
+            await logAudit(req.user.id, action, 'maintenance_tickets', id, { new_status: status }, req);
 
             res.json(ticket);
         } catch (error) {

@@ -1,5 +1,6 @@
 const Message = require('../models/messageModel');
 const Notification = require('../models/notificationModel');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 // @desc    Post a new message
 // @route   POST /api/communication/messages
@@ -13,6 +14,9 @@ const postMessage = async (req, res) => {
             user_id: req.user.id,
             parent_id
         });
+
+        // Log audit
+        await logAudit(req.user.id, AUDIT_ACTIONS.MESSAGE_POSTED, 'messages', message.id, { is_reply: !!parent_id }, req);
 
         // If this is a reply, notify the parent message author
         if (parent_id) {
@@ -72,6 +76,10 @@ const deleteMessage = async (req, res) => {
         // Allow deletion if user is admin (role_id = 1) or message owner
         if (req.user.role_id === 1 || req.user.id === messageOwnerId) {
             const deleted = await Message.delete(req.params.id);
+
+            // Log audit
+            await logAudit(req.user.id, AUDIT_ACTIONS.MESSAGE_DELETED, 'messages', req.params.id, { deleted_by: req.user.id }, req);
+
             res.json({ message: 'Message deleted' });
         } else {
             res.status(403).json({ message: 'Not authorized to delete this message' });
@@ -89,6 +97,9 @@ const flagMessage = async (req, res) => {
     try {
         const flagged = await Message.flag(req.params.id);
         if (flagged) {
+            // Log audit
+            await logAudit(req.user.id, 'MESSAGE_FLAGGED', 'messages', req.params.id, {}, req);
+
             res.json({ message: 'Message flagged', data: flagged });
         } else {
             res.status(404).json({ message: 'Message not found' });

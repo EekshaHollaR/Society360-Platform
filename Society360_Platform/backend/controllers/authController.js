@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const { hashPassword, comparePassword, generateToken } = require('../utils/security');
 const { validationResult } = require('express-validator');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -35,6 +36,9 @@ const registerUser = async (req, res) => {
         });
 
         if (newUser) {
+            // Log audit
+            await logAudit(newUser.id, AUDIT_ACTIONS.USER_CREATED, 'users', newUser.id, { email: newUser.email }, req);
+
             res.status(201).json({
                 model: newUser,
                 token: generateToken(newUser.id, newUser.role),
@@ -64,13 +68,18 @@ const loginUser = async (req, res) => {
         const user = await User.findByEmail(email);
 
         if (user && (await comparePassword(password, user.password_hash))) {
+            const token = generateToken(user.id, user.role);
+
+            // Log audit
+            await logAudit(user.id, AUDIT_ACTIONS.USER_LOGIN, 'users', user.id, { email: user.email }, req);
+
             res.json({
                 id: user.id,
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,
                 role: user.role,
-                token: generateToken(user.id, user.role),
+                token,
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });

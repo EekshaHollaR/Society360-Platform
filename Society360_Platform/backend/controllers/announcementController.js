@@ -1,6 +1,7 @@
 const Announcement = require('../models/announcementModel');
 const Notification = require('../models/notificationModel');
 const db = require('../config/db');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 // @desc    Create new announcement (Admin only)
 // @route   POST /api/communication/announcements
@@ -17,6 +18,9 @@ const createAnnouncement = async (req, res) => {
             is_important,
             expires_at
         });
+
+        // Log audit
+        await logAudit(req.user.id, AUDIT_ACTIONS.ANNOUNCEMENT_CREATED, 'announcements', announcement.id, { title, target_audience }, req);
 
         // Create notifications for all residents
         const residentsQuery = 'SELECT id FROM users WHERE role_id = 3'; // Assuming role_id 3 is Resident
@@ -60,6 +64,9 @@ const deleteAnnouncement = async (req, res) => {
     try {
         const deleted = await Announcement.delete(req.params.id);
         if (deleted) {
+            // Log audit
+            await logAudit(req.user.id, AUDIT_ACTIONS.ANNOUNCEMENT_DELETED, 'announcements', req.params.id, {}, req);
+
             res.json({ message: 'Announcement deleted' });
         } else {
             res.status(404).json({ message: 'Announcement not found' });

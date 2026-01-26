@@ -1,5 +1,6 @@
 const Finance = require('../models/financeModel');
 const db = require('../config/db'); // Needed for transactions if complex validity checks are added later, for now model handles it.
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 exports.generateMonthlyBills = async (req, res) => {
     try {
@@ -19,6 +20,9 @@ exports.generateMonthlyBills = async (req, res) => {
             due_date: dueDate,
             description
         });
+
+        // Log audit
+        await logAudit(req.user.id, AUDIT_ACTIONS.BILL_CREATED, 'bills', newBill.id, { unit_id, amount, bill_type }, req);
 
         res.status(201).json({ message: 'Bill generated successfully', bill: newBill });
     } catch (error) {
@@ -93,6 +97,9 @@ exports.payBill = async (req, res) => {
         });
 
         await Finance.updateBillStatus(bill_id, 'paid');
+
+        // Log audit
+        await logAudit(payer_id, AUDIT_ACTIONS.PAYMENT_RECORDED, 'payments', payment.id, { bill_id, amount, payment_method }, req);
 
         res.status(200).json({ message: 'Payment successful', payment });
 
