@@ -4,47 +4,66 @@
 
 :root {
   /* Civora Brand Colors */
-  --primary: #1E40AF;
-  --primary-light: #3B82F6;
-  --primary-dark: #1E3A8A;
-  --secondary: #0D9488;
-  --secondary-light: #14B8A6;
+  --primary: #2563EB; /* Bright Blue */
+  --primary-light: #60A5FA;
+  --primary-dark: #1E40AF;
+  --primary-gradient: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #60A5FA 100%);
+  
+  --secondary: #10B981; /* Emerald */
+  --secondary-light: #34D399;
+  --secondary-dark: #059669;
+  --secondary-gradient: linear-gradient(135deg, #059669 0%, #10B981 100%);
+
   --accent: #F59E0B;
-
-  /* Status Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
-
-  /* Neutral Colors */
+  
+  /* Modern Dark/Light Theme Support */
   --background: #FFFFFF;
-  --foreground: #111827;
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-300: #D1D5DB;
-  --gray-400: #9CA3AF;
-  --gray-500: #6B7280;
-  --gray-600: #4B5563;
-  --gray-700: #374151;
-  --gray-800: #1F2937;
-  --gray-900: #111827;
+  --foreground: #0F172A;
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  /* Gradients */
+  --gradient-mesh: radial-gradient(at 0% 0%, #3B82F6 0px, transparent 50%),
+                   radial-gradient(at 100% 0%, #10B981 0px, transparent 50%),
+                   radial-gradient(at 100% 100%, #8B5CF6 0px, transparent 50%);
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #F8FAFC;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
-  --color-primary-*: initial;
-  --color-secondary-*: initial;
-  --color-accent-*: initial;
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-light: var(--secondary-light);
+  --color-secondary-dark: var(--secondary-dark);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  
   --font-sans: 'Inter', system-ui, sans-serif;
+  
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 * {
