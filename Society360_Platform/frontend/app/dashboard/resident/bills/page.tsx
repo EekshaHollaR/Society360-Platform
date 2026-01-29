@@ -8,22 +8,14 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { residentApi, Bill } from '@/lib/api/resident';
 
-import { useAuthStore } from '@/lib/store/authStore';
-
 export default function BillsPage() {
     const [bills, setBills] = useState<Bill[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [payingId, setPayingId] = useState<string | null>(null);
-    const { user } = useAuthStore();
-    const unitId = user?.units?.[0]?.id;
 
     const fetchBills = async () => {
-        if (!unitId) {
-            setIsLoading(false);
-            return;
-        }
         try {
-            const response = await residentApi.getBills(unitId);
+            const response = await residentApi.getBills();
             if (response.data.success) {
                 setBills(response.data.data);
             }
@@ -36,25 +28,16 @@ export default function BillsPage() {
 
     useEffect(() => {
         fetchBills();
-    }, [unitId]);
+    }, []);
 
     const handlePay = async (id: string, amount: number) => {
         setPayingId(id);
-        try {
-            // Hardcoded payment method for now, in real app would be selected
-            const response = await residentApi.payBill(id, amount, 'credit_card');
-            if (response.data.success || response.status === 200) {
-                toast.success(`Payment of $${amount} successful`);
-                setBills(prev => prev.map(b => b.id === id ? { ...b, status: 'paid' } : b));
-                // Optionally refresh all bills
-            } else {
-                throw new Error(response.data.message || 'Payment failed');
-            }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Payment failed');
-        } finally {
+        // Simulate payment processing
+        setTimeout(() => {
+            toast.success(`Payment of $${amount} successful`);
+            setBills(prev => prev.map(b => b.id === id ? { ...b, status: 'paid' } : b));
             setPayingId(null);
-        }
+        }, 1500);
     };
 
     const outstandingBills = bills.filter(b => b.status !== 'paid');

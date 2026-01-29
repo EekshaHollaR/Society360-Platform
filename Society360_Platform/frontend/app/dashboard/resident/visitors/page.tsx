@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
+import { Alert } from '@/components/ui/Alert';
 import { residentApi, Visitor } from '@/lib/api/resident';
 import { useAuthStore } from '@/lib/store/authStore';
 
@@ -17,7 +18,7 @@ export default function VisitorsPage() {
     const [visitors, setVisitors] = useState<Visitor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<Partial<Visitor>>();
+    const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm<Partial<Visitor>>();
     const { user } = useAuthStore();
     const unitId = user?.units?.[0]?.id;
 
@@ -51,9 +52,24 @@ export default function VisitorsPage() {
                 setIsModalOpen(false);
                 reset();
                 fetchVisitors(); // Reload list (or append efficiently)
+            } else {
+                // Show server side message
+                toast.error(response.data.message || 'Failed to pre-approve visitor');
             }
-        } catch (error) {
-            toast.error('Failed to pre-approve visitor');
+        } catch (err: unknown) {
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
+            const message = errorObj.response?.data?.message || 'Failed to pre-approve visitor';
+
+            // Map field errors if present
+            const fieldErrors = errorObj.response?.data?.errors;
+            if (fieldErrors) {
+                Object.entries(fieldErrors).forEach(([field, msg]) => {
+                    // @ts-ignore
+                    setError(field as any, { type: 'server', message: msg });
+                });
+            }
+
+            toast.error(message);
         }
     };
 
@@ -80,8 +96,18 @@ export default function VisitorsPage() {
             </div>
 
             {isLoading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+                <div className="grid gap-4">
+                    {[1,2,3].map((i) => (
+                        <Card key={i} className="p-6 animate-pulse">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-[var(--gray-200)]"></div>
+                                <div className="flex-1">
+                                    <div className="h-4 bg-[var(--gray-200)] rounded w-3/4 mb-2"></div>
+                                    <div className="h-3 bg-[var(--gray-200)] rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
                 </div>
             ) : (
                 <div className="grid gap-4">
@@ -132,13 +158,16 @@ export default function VisitorsPage() {
                     <Input
                         label="Full Name"
                         placeholder="e.g. John Doe"
-                        {...register('name', { required: 'Name is required' })}
+                        {...register('name', { required: 'Name is required', minLength: { value: 2, message: 'Please enter a full name' } })}
                         error={errors.name?.message}
                     />
                     <Input
                         label="Phone Number"
-                        placeholder="e.g. 1234567890"
-                        {...register('phone_number', { required: 'Phone number is required' })}
+                        placeholder="e.g. +1 555 555 5555"
+                        {...register('phone_number', {
+                            required: 'Phone number is required',
+                            pattern: { value: /^[+]?\d{7,15}$/, message: 'Please enter a valid phone number' }
+                        })}
                         error={errors.phone_number?.message}
                     />
                     <Select
@@ -153,7 +182,16 @@ export default function VisitorsPage() {
                     <Input
                         label="Expected Arrival"
                         type="datetime-local"
-                        {...register('expected_arrival', { required: 'Arrival time is required' })}
+                        {...register('expected_arrival', {
+                            required: 'Arrival time is required',
+                            validate: (value) => {
+                                if (!value) return 'Arrival time is required';
+                                const selected = new Date(value);
+                                if (isNaN(selected.getTime())) return 'Invalid date';
+                                if (selected.getTime() < Date.now() - 5 * 60 * 1000) return 'Arrival cannot be in the past';
+                                return true;
+                            }
+                        })}
                         error={errors.expected_arrival?.message}
                     />
                     <Input
@@ -166,7 +204,7 @@ export default function VisitorsPage() {
                         <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button type="submit" isLoading={isSubmitting}>
                             Pre-approve
                         </Button>
                     </div>

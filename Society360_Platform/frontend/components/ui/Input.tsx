@@ -35,11 +35,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               placeholder:text-[var(--gray-400)]
               ${className}
             `}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `${props.id || props.name}-error` : undefined}
                         {...props}
                     />
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
+                    <p id={`${props?.name || props?.id}-error`} className="mt-1.5 text-sm text-[var(--error)]" role="alert">{error}</p>
                 )}
             </div>
         );

@@ -34,6 +34,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               disabled:bg-[var(--gray-100)] disabled:cursor-not-allowed
               ${className}
             `}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `${props?.name || props?.id}-error` : undefined}
                         {...props}
                     >
                         <option value="" disabled>Select an option</option>
@@ -50,7 +52,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                     </div>
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-[var(--error)]">{error}</p>
+                    <p id={`${props?.name || props?.id}-error`} className="mt-1.5 text-sm text-[var(--error)]" role="alert">{error}</p>
                 )}
             </div>
         );

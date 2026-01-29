@@ -7,6 +7,7 @@ import { FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Alert } from '@/components/ui/Alert';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/lib/store/authStore';
 import { getDashboardRoute } from '@/lib/navigation/routes';
@@ -25,6 +26,7 @@ export default function LoginPage() {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors },
     } = useForm<LoginForm>();
 
@@ -44,13 +46,24 @@ export default function LoginPage() {
                 const dashboardRoute = getDashboardRoute(response.user.role);
                 router.push(dashboardRoute);
             } else {
-                setError(response.message || 'Login failed');
+                setError('email', { type: 'server', message: response.message || 'Invalid credentials' });
                 toast.error(response.message || 'Login failed');
             }
         } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            const errorMessage = error.response?.data?.message || 'An error occurred during login';
-            setError(errorMessage);
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
+            const errorMessage = errorObj.response?.data?.message || 'An error occurred during login';
+
+            // Map server-side field errors (if any) to form fields
+            const fieldErrors = errorObj.response?.data?.errors;
+            if (fieldErrors) {
+                Object.entries(fieldErrors).forEach(([field, msg]) => {
+                    // @ts-ignore: react-hook-form setError dynamic key
+                    setError(field as any, { type: 'server', message: msg });
+                });
+            } else {
+                setError('email', { type: 'server', message: errorMessage });
+            }
+
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
@@ -77,12 +90,14 @@ export default function LoginPage() {
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-[var(--gray-200)]">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Error Alert */}
-                        {error && (
-                            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                                <FiAlertCircle className="flex-shrink-0" />
-                                <span className="text-sm">{error}</span>
-                            </div>
-                        )}
+                        {(() => {
+                            const serverErrorMsg = Object.values(errors).find((e: any) => e?.type === 'server')?.message;
+                            return serverErrorMsg ? (
+                                <Alert variant="error" title="Sign-in failed">
+                                    {serverErrorMsg}
+                                </Alert>
+                            ) : null;
+                        })()}
 
                         {/* Email Input */}
                         <Input

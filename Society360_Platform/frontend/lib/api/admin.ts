@@ -57,15 +57,6 @@ export const adminApi = {
         return api.patch(`/admin/users/${id}/role`, { role });
     },
 
-    // Reports & Dashboard
-    getDashboardStats: async () => {
-        return api.get('/admin/reports/dashboard');
-    },
-
-    getRecentActivity: async () => {
-        return api.get('/admin/audit-logs/recent');
-    },
-
     // Finance
     getFinanceStats: async () => {
         return api.get('/admin/reports/finance');
