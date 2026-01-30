@@ -8,19 +8,39 @@ describe('Admin User Management API', () => {
     let testRoleId;
 
     beforeAll(async () => {
-        // Get admin role ID
+        // Ensure admin role exists and get role id
         const roleResult = await db.query("SELECT id FROM roles WHERE name = 'admin' LIMIT 1");
         testRoleId = roleResult.rows[0]?.id;
 
-        // Login as admin to get token
-        const loginRes = await request(app)
-            .post('/api/auth/login')
-            .send({
-                email: 'admin@society360.com',
-                password: 'admin123'
-            });
+        // Try to register a test admin user. If it already exists, fall back to login.
+        const adminUser = {
+            first_name: 'Test',
+            last_name: 'Admin',
+            email: 'test-admin@society360.com',
+            password: 'admin123',
+            role: 'admin'
+        };
 
-        adminToken = loginRes.body.token;
+        const registerRes = await request(app)
+            .post('/api/auth/register')
+            .send(adminUser);
+
+        if (registerRes.statusCode === 201) {
+            // Registered successfully
+            adminToken = registerRes.body.token;
+        } else {
+            // Probably already exists — login to get token
+            const loginRes = await request(app)
+                .post('/api/auth/login')
+                .send({ email: adminUser.email, password: adminUser.password });
+
+            adminToken = loginRes.body.token;
+        }
+
+        // Fallback: ensure we have a token
+        if (!adminToken) {
+            throw new Error('Failed to obtain admin token in test setup');
+        }
     });
 
     describe('GET /api/admin/users', () => {

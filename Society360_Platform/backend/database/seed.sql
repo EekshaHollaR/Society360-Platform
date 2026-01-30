@@ -29,10 +29,10 @@ END $$;
 
 -- USERS
 INSERT INTO users (full_name, email, password_hash, phone_number, role_id, status) VALUES
-('Super Admin', 'admin@society360.com', 'hashed_secret_password', '9999999999', 1, 'active'),
-('John Security', 'guard@society360.com', 'hashed_secret_password', '8888888888', 2, 'active'),
-('Alice Resident', 'alice@gmail.com', 'hashed_secret_password', '7777777777', 3, 'active'),
-('Bob Tenant', 'bob@gmail.com', 'hashed_secret_password', '6666666666', 3, 'active');
+('Super Admin', 'admin@society360.com', '$2b$10$VSYAplifJfIMyWQNb/uZ1O8JK1k8fZP0uevWmazK4sLtE7F5Q2Bpe', '9999999999', 1, 'active'),
+('John Security', 'guard@society360.com', '$2b$10$NR6pWwBARYC9tuqoQtdeVeAY0uMeNq.YYYxscSl9LiLXphEE1F3gC', '8888888888', 2, 'active'),
+('Alice Resident', 'alice@gmail.com', '$2b$10$JLCikMzWqvMylf77G3FkxueOz9ao5bnMYMpTj/gzOlnaBHOz4owPy', '7777777777', 3, 'active'),
+('Bob Tenant', 'bob@gmail.com', '$2b$10$JLCikMzWqvMylf77G3FkxueOz9ao5bnMYMpTj/gzOlnaBHOz4owPy', '6666666666', 3, 'active');
 
 -- LINK USERS TO UNITS (Residents)
 -- Note: In a real script we would select IDs, but here we use subqueries for simplicity in a pure SQL script

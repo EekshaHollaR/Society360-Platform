@@ -13,7 +13,7 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { first_name, last_name, email, password, role, phone_number } = req.body;
+    const { full_name, first_name, last_name, email, password, role, phone_number } = req.body;
 
     try {
         // Check if user exists
@@ -25,13 +25,14 @@ const registerUser = async (req, res) => {
         // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Create user
+        // Create user - allow either full_name or first+last
         const newUser = await User.create({
+            full_name,
             first_name,
             last_name,
             email,
             password: hashedPassword,
-            role, // Optional, defaults to 'Resident' in model if null
+            role, // Optional: name of role, will be resolved to role_id
             phone_number
         });
 
@@ -75,8 +76,7 @@ const loginUser = async (req, res) => {
 
             res.json({
                 id: user.id,
-                first_name: user.first_name,
-                last_name: user.last_name,
+                full_name: user.full_name,
                 email: user.email,
                 role: user.role,
                 token,

@@ -43,6 +43,7 @@ const MaintenanceController = {
 
             // Verify staff exists and is actually staff
             const staff = await User.findById(staff_id);
+            console.log('Assign: staff lookup result:', staff);
             if (!staff || (staff.role !== 'staff' && staff.role !== 'admin')) {
                 return res.status(400).json({ message: 'Invalid staff user' });
             }

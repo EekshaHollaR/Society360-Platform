@@ -20,6 +20,18 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
+// In test environment, ensure pool is closed on process exit to avoid open handle warnings
+if (process.env.NODE_ENV === 'test') {
+  process.on('exit', async () => {
+    try {
+      await pool.end();
+      console.log('Test environment: closed DB pool');
+    } catch (err) {
+      // ignore
+    }
+  });
+}
+
 module.exports = {
   query: (text, params) => pool.query(text, params),
   pool,

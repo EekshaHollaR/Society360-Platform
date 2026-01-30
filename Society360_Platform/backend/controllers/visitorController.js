@@ -62,6 +62,7 @@ const VisitorController = {
                 await logAudit(securityGuardId, AUDIT_ACTIONS.VISITOR_CHECKED_IN, 'visitor_logs', visitor.id, { method: 'WALK_IN', visitor_name, unit_id }, req);
             }
 
+            console.log('Visitor check-in result:', visitor);
             res.json(visitor);
         } catch (error) {
             console.error(error);

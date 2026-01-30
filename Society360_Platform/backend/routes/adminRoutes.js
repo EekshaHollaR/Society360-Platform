@@ -16,7 +16,7 @@ const { check, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ success: false, errors: errors.array() });
     }
     next();
 };
@@ -35,8 +35,8 @@ router.get('/users/:id', AdminController.getUserById);
 router.post(
     '/users',
     [
-        check('first_name', 'First name is required').not().isEmpty(),
-        check('last_name', 'Last name is required').not().isEmpty(),
+        // Accept full_name for admin-created users (tests use full_name)
+        check('full_name', 'Full name is required').not().isEmpty(),
         check('email', 'Valid email is required').isEmail(),
         check('role', 'Role is required').isIn(['admin', 'resident', 'staff']),
         validate

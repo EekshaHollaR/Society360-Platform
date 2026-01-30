@@ -53,6 +53,8 @@ const AdminController = {
         try {
             const { full_name, email, password, phone_number, role, status, profile_picture_url } = req.body;
 
+            console.log('createUser payload:', { full_name, email, role, status });
+
             // Validation
             if (!full_name || !email || !password || !role) {
                 return res.status(400).json({
@@ -63,7 +65,9 @@ const AdminController = {
 
             // Get role ID
             const roleData = await AdminModel.getRoleByName(role);
+            console.log('roleData fetched:', roleData);
             if (!roleData) {
+                console.error('Create user failed: role not found for', role);
                 return res.status(400).json({ success: false, message: 'Invalid role' });
             }
 
