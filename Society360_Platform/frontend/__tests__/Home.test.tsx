@@ -3,17 +3,18 @@ import { render, screen } from '@testing-library/react';
 import Home from '../app/page';
 
 describe('Home Page', () => {
-    it('renders the getting started text', () => {
+    it('renders the hero heading', () => {
         render(<Home />);
 
-        const heading = screen.getByText(/To get started, edit the/i);
+        const heading = screen.getByRole('heading', { name: /Modern Living, Simplified\./i });
         expect(heading).toBeInTheDocument();
     });
 
-    it('renders the deploy link', () => {
+    it('renders the get started link', () => {
         render(<Home />);
 
-        const deployLink = screen.getByRole('link', { name: /Deploy Now/i });
-        expect(deployLink).toHaveAttribute('href', 'https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app');
+        const getStartedLinks = screen.getAllByRole('link', { name: /Get Started/i });
+        expect(getStartedLinks.length).toBeGreaterThan(0);
+        expect(getStartedLinks[0]).toHaveAttribute('href', '/auth/register');
     });
 });

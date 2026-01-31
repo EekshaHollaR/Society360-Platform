@@ -10,7 +10,8 @@ describe('Button Component', () => {
 
     it('renders loading state correctly', () => {
         render(<Button isLoading>Click Me</Button>);
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        // Visible loading text used in component
+        expect(screen.getByText('Please wait...')).toBeInTheDocument();
         expect(screen.getByRole('button')).toBeDisabled();
     });
 
