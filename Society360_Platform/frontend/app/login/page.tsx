@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
+import Link from 'next/link';
+import { FiMail, FiLock, FiAlertCircle, FiUserPlus } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,7 +22,6 @@ export default function LoginPage() {
     const router = useRouter();
     const { setUser, setAuthenticated } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
 
     const {
         register,
@@ -32,7 +32,6 @@ export default function LoginPage() {
 
     const onSubmit = async (data: LoginForm) => {
         setIsLoading(true);
-        setError('');
 
         try {
             const response = await authApi.login(data);
@@ -50,7 +49,7 @@ export default function LoginPage() {
                 toast.error(response.message || 'Login failed');
             }
         } catch (err: unknown) {
-            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string, string> } } };
             const errorMessage = errorObj.response?.data?.message || 'An error occurred during login';
 
             // Map server-side field errors (if any) to form fields
@@ -143,8 +142,22 @@ export default function LoginPage() {
                         </Button>
                     </form>
 
-                    {/* Demo Credentials */}
+                    {/* Register Link */}
                     <div className="mt-6 pt-6 border-t border-[var(--gray-200)]">
+                        <p className="text-center text-sm text-[var(--gray-600)]">
+                            Don't have an account?{' '}
+                            <Link
+                                href="/register"
+                                className="font-semibold text-[var(--primary)] hover:text-[var(--primary-dark)] transition-colors inline-flex items-center gap-1"
+                            >
+                                <FiUserPlus className="w-4 h-4" />
+                                Register here
+                            </Link>
+                        </p>
+                    </div>
+
+                    {/* Demo Credentials */}
+                    <div className="mt-4 pt-4 border-t border-[var(--gray-200)]">
                         <p className="text-sm text-[var(--gray-600)] mb-3 font-medium">
                             Demo Credentials:
                         </p>

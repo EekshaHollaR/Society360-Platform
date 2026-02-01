@@ -41,11 +41,20 @@ const registerUser = async (req, res) => {
             await logAudit(newUser.id, AUDIT_ACTIONS.USER_CREATED, 'users', newUser.id, { email: newUser.email }, req);
 
             res.status(201).json({
-                model: newUser,
+                success: true,
                 token: generateToken(newUser.id, newUser.role),
+                user: {
+                    id: newUser.id,
+                    full_name: newUser.full_name,
+                    email: newUser.email,
+                    role: newUser.role,
+                    phone_number: newUser.phone_number,
+                    created_at: newUser.created_at
+                },
+                message: 'Registration successful'
             });
         } else {
-            res.status(400).json({ message: 'Invalid user data' });
+            res.status(400).json({ success: false, message: 'Invalid user data' });
         }
     } catch (error) {
         console.error(error);
@@ -75,14 +84,20 @@ const loginUser = async (req, res) => {
             await logAudit(user.id, AUDIT_ACTIONS.USER_LOGIN, 'users', user.id, { email: user.email }, req);
 
             res.json({
-                id: user.id,
-                full_name: user.full_name,
-                email: user.email,
-                role: user.role,
+                success: true,
                 token,
+                user: {
+                    id: user.id,
+                    full_name: user.full_name,
+                    email: user.email,
+                    role: user.role,
+                    phone_number: user.phone_number,
+                    created_at: user.created_at
+                },
+                message: 'Login successful'
             });
         } else {
-            res.status(401).json({ message: 'Invalid email or password' });
+            res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
     } catch (error) {
         console.error(error);
@@ -99,18 +114,20 @@ const getMe = async (req, res) => {
     if (req.user) {
         try {
             const units = await Unit.findUnitsByUser(req.user.id);
-            // Convert to plain object to avoid mutation issues if req.user is a mongoose doc (though here it seems to be from middleware which might be plain or not)
-            // Assuming req.user is the user object.
-            // If req.user is from JWT payload, it might be minimal. If from DB in middleware, it's full.
-            // Middleware usually fetches full user.
-            const userResponse = { ...req.user, units };
+            const userResponse = {
+                success: true,
+                user: {
+                    ...req.user,
+                    units
+                }
+            };
             res.json(userResponse);
         } catch (error) {
             console.error('Error fetching user units:', error);
-            res.status(500).json({ message: 'Server error fetching user details' });
+            res.status(500).json({ success: false, message: 'Server error fetching user details' });
         }
     } else {
-        res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ success: false, message: 'User not found' });
     }
 };
 

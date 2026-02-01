@@ -28,14 +28,23 @@ BEGIN
 END $$;
 
 -- USERS
+-- Password hashes: admin123, staff123, resident123 (all hashed with bcrypt)
 INSERT INTO users (full_name, email, password_hash, phone_number, role_id, status) VALUES
 ('Super Admin', 'admin@society360.com', '$2b$10$VSYAplifJfIMyWQNb/uZ1O8JK1k8fZP0uevWmazK4sLtE7F5Q2Bpe', '9999999999', 1, 'active'),
-('John Security', 'guard@society360.com', '$2b$10$NR6pWwBARYC9tuqoQtdeVeAY0uMeNq.YYYxscSl9LiLXphEE1F3gC', '8888888888', 2, 'active'),
+('Security Staff', 'staff@society360.com', '$2b$10$NR6pWwBARYC9tuqoQtdeVeAY0uMeNq.YYYxscSl9LiLXphEE1F3gC', '8888888888', 2, 'active'),
+('John Resident', 'resident@society360.com', '$2b$10$JLCikMzWqvMylf77G3FkxueOz9ao5bnMYMpTj/gzOlnaBHOz4owPy', '7777777777', 3, 'active'),
 ('Alice Resident', 'alice@gmail.com', '$2b$10$JLCikMzWqvMylf77G3FkxueOz9ao5bnMYMpTj/gzOlnaBHOz4owPy', '7777777777', 3, 'active'),
 ('Bob Tenant', 'bob@gmail.com', '$2b$10$JLCikMzWqvMylf77G3FkxueOz9ao5bnMYMpTj/gzOlnaBHOz4owPy', '6666666666', 3, 'active');
 
 -- LINK USERS TO UNITS (Residents)
 -- Note: In a real script we would select IDs, but here we use subqueries for simplicity in a pure SQL script
+INSERT INTO user_units (user_id, unit_id, resident_type, is_primary_contact)
+SELECT 
+    (SELECT id FROM users WHERE email = 'resident@society360.com'),
+    (SELECT id FROM units WHERE unit_number = '102' LIMIT 1),
+    'owner',
+    TRUE;
+
 INSERT INTO user_units (user_id, unit_id, resident_type, is_primary_contact)
 SELECT 
     (SELECT id FROM users WHERE email = 'alice@gmail.com'),

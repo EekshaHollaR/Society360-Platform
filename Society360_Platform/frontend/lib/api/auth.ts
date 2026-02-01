@@ -39,6 +39,11 @@ api.interceptors.response.use(
     }
 );
 
+export interface LoginCredentials {
+    email: string;
+    password: string;
+}
+
 export interface RegisterCredentials {
     first_name: string;
     last_name: string;
