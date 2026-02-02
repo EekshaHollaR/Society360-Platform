@@ -11,8 +11,24 @@ const User = {
             name = `${first_name}${last_name ? ' ' + last_name : ''}`.trim();
         }
 
-        // Resolve role_id only if role_id provided. If role is a name string, we will set the returned role to that name
-        const resolvedRoleId = role_id || null;
+        // Resolve role_id
+        let resolvedRoleId = role_id;
+
+        // 1. If role_id missing but role name provided, look it up
+        if (!resolvedRoleId && role) {
+            const roleRes = await db.query('SELECT id FROM roles WHERE name = $1', [role.toLowerCase()]);
+            if (roleRes.rows.length > 0) {
+                resolvedRoleId = roleRes.rows[0].id;
+            }
+        }
+
+        // 2. If still no role_id, default to 'resident'
+        if (!resolvedRoleId) {
+            const defaultRoleRes = await db.query('SELECT id FROM roles WHERE name = $1', ['resident']);
+            if (defaultRoleRes.rows.length > 0) {
+                resolvedRoleId = defaultRoleRes.rows[0].id;
+            }
+        }
 
         const query = `
       INSERT INTO users (full_name, email, password_hash, phone_number, role_id, profile_picture_url)
