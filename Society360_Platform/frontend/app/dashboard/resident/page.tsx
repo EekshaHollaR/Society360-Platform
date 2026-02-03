@@ -25,19 +25,19 @@ export default function ResidentDashboard() {
             if (!unit?.id) return;
             try {
                 const [billsRes, ticketsRes, announceRes, notifRes] = await Promise.all([
-                    residentApi.getBills(unit.id),
+                    residentApi.getBills(),
                     residentApi.getTickets(),
                     residentApi.getAnnouncements(),
                     residentApi.getNotifications()
                 ]);
 
-                if (billsRes.data) setBills(billsRes.data);
-                if (ticketsRes.data) setTickets(ticketsRes.data);
-                if (announceRes.data) setAnnouncements(announceRes.data);
-                if (notifRes.data) setNotifications(notifRes.data);
+                if (billsRes.data.success) setBills(billsRes.data.data || []);
+                if (ticketsRes.data.success) setTickets(ticketsRes.data.data || []);
+                if (announceRes.data.success) setAnnouncements(announceRes.data.data || []);
+                if (notifRes.data.success) setNotifications(notifRes.data.data || []);
             } catch (error) {
                 console.error('Failed to fetch resident dashboard data', error);
-                // toast.error('Failed to load dashboard data'); // Suppress if user has no assigned unit yet to avoid spam
+                // toast.error('Failed to load dashboard data'); 
             } finally {
                 setIsLoading(false);
             }

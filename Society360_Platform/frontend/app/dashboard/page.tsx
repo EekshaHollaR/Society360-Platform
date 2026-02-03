@@ -13,13 +13,24 @@ export default function DashboardPage() {
         if (!isLoading && user) {
             router.replace(getDashboardRoute(user.role));
         } else if (!isLoading && !user) {
-            router.replace('/login');
+            router.replace('/auth/login');
         }
     }, [user, isLoading, router]);
 
     return (
-        <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+        <div className="min-h-screen flex items-center justify-center bg-[#020617]">
+            <div className="flex flex-col items-center gap-4">
+                {/* Spinner */}
+                <div className="relative">
+                    <div className="h-10 w-10 rounded-full border-2 border-white/10" />
+                    <div className="absolute inset-0 h-10 w-10 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                </div>
+
+                {/* Subtle text */}
+                <p className="text-sm text-slate-400">
+                    Redirecting to your dashboard…
+                </p>
+            </div>
         </div>
     );
 }

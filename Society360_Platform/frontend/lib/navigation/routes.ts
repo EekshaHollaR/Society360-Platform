@@ -134,17 +134,21 @@ export const navigationConfig: NavItem[] = [
  * Get navigation items for a specific role
  */
 export const getNavigationForRole = (role: string): NavItem[] => {
-    return navigationConfig.filter((item) => item.roles.includes(role));
+    if (!role) return [];
+    const roleLower = role.toLowerCase();
+    return navigationConfig.filter((item) => item.roles.includes(roleLower));
 };
 
 /**
  * Get dashboard route for role
  */
 export const getDashboardRoute = (role: string): string => {
+    if (!role) return '/auth/login';
+    const roleLower = role.toLowerCase();
     const roleMap: Record<string, string> = {
         admin: '/dashboard/admin',
         staff: '/dashboard/staff',
         resident: '/dashboard/resident',
     };
-    return roleMap[role] || '/dashboard/resident';
+    return roleMap[roleLower] || '/dashboard/resident';
 };

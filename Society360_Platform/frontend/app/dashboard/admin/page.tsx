@@ -22,8 +22,8 @@ export default function AdminDashboard() {
                     adminApi.getRecentActivity()
                 ]);
 
-                if (statsRes.data) setStats(statsRes.data);
-                if (activityRes.data) setRecentActivity(activityRes.data);
+                if (statsRes.data.success) setStats(statsRes.data.data || {});
+                if (activityRes.data.success) setRecentActivity(activityRes.data.data || []);
             } catch (error) {
                 console.error('Failed to fetch admin dashboard data', error);
                 toast.error('Failed to load dashboard data');

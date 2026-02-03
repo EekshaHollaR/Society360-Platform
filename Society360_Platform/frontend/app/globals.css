@@ -1,123 +1,122 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-
+/* =====================================================
+   DESIGN TOKENS
+===================================================== */
 :root {
-  /* Civora Brand Colors */
-  --primary: #2563EB; /* Bright Blue */
-  --primary-light: #60A5FA;
-  --primary-dark: #1E40AF;
-  --primary-gradient: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #60A5FA 100%);
-  
-  --secondary: #10B981; /* Emerald */
-  --secondary-light: #34D399;
-  --secondary-dark: #059669;
-  --secondary-gradient: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  --primary: #3b82f6;
+  --primary-strong: #2563eb;
 
-  --accent: #F59E0B;
-  
-  /* Modern Dark/Light Theme Support */
-  --background: #FFFFFF;
-  --foreground: #0F172A;
-  
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-
-  /* Gradients */
-  --gradient-mesh: radial-gradient(at 0% 0%, #3B82F6 0px, transparent 50%),
-                   radial-gradient(at 100% 0%, #10B981 0px, transparent 50%),
-                   radial-gradient(at 100% 100%, #8B5CF6 0px, transparent 50%);
-}
-
-.dark {
   --background: #020617;
-  --foreground: #F8FAFC;
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(15, 23, 42, 0.85);
+  --card-border: rgba(255, 255, 255, 0.12);
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+
+  /* Compact spacing (AUTH SAFE) */
+  --space-xs: 0.4rem;
+  --space-sm: 0.6rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
 }
 
-@theme inline {
-  --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
-  --color-primary-dark: var(--primary-dark);
-  
-  --color-secondary: var(--secondary);
-  --color-secondary-light: var(--secondary-light);
-  --color-secondary-dark: var(--secondary-dark);
-
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  
-  --font-sans: 'Inter', system-ui, sans-serif;
-  
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-fade-in-up: fadeInUp 0.5s ease-out forwards;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* =====================================================
+   BASE
+===================================================== */
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  background: radial-gradient(
+    circle at top,
+    #020617 0%,
+    #020617 40%,
+    #000000 100%
+  );
+  color: var(--text-main);
   font-family: 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* =====================================================
+   CARD (LOGIN / REGISTER)
+===================================================== */
+.auth-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1.25rem;
+  padding: 1.75rem 1.75rem;
+  box-shadow:
+    0 20px 50px -30px rgba(0, 0, 0, 0.9);
 }
 
-::-webkit-scrollbar-track {
-  background: var(--gray-100);
+/* =====================================================
+   TYPOGRAPHY
+===================================================== */
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: var(--space-xs);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--gray-400);
-  border-radius: 4px;
+p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-sm);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
+/* =====================================================
+   FORMS
+===================================================== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
-/* Smooth transitions */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+/* Input containers should not glow */
+input {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-main);
 }
 
-/* Focus styles */
-*:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+/* =====================================================
+   BUTTON
+===================================================== */
+button {
+  margin-top: var(--space-xs);
+  padding: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    135deg,
+    #4f46e5,
+    #06b6d4
+  );
+  box-shadow: 0 10px 30px -12px rgba(59, 130, 246, 0.6);
 }
 
-/* Selection */
-::selection {
-  background-color: var(--primary-light);
-  color: white;
+/* =====================================================
+   LINKS
+===================================================== */
+a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #0f172a inset;
+  -webkit-text-fill-color: #f8fafc;
+  transition: background-color 9999s ease-in-out 0s;
 }

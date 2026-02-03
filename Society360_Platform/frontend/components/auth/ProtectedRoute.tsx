@@ -23,10 +23,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     useEffect(() => {
         if (!isLoading) {
             if (!isAuthenticated) {
-                router.push('/login');
-            } else if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
-                // Redirect to unauthorized or dashboard if role doesn't match
-                router.push('/unauthorized'); // Or handle appropriately
+                router.push('/auth/login');
+            } else if (allowedRoles.length > 0 && user) {
+                const userRole = (user.role || '').toLowerCase();
+                const roles = allowedRoles.map(r => r.toLowerCase());
+
+                if (!userRole || !roles.includes(userRole)) {
+                    console.warn(`Access denied: User role '${user.role}' not in allowed roles [${allowedRoles.join(', ')}]`);
+                    router.push('/unauthorized');
+                }
             }
         }
     }, [isAuthenticated, isLoading, router, user, allowedRoles]);

@@ -18,75 +18,114 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         const fetchNotifications = async () => {
             try {
                 const response = await residentApi.getNotifications();
-                // Assuming response.data is the array directly or inside a property.
-                // notificationController.js says `res.json(notifications);`
                 if (Array.isArray(response.data)) {
-                    const count = response.data.filter((n: any) => !n.read_at && !n.is_read).length; // check field name
+                    const count = response.data.filter(
+                        (n: any) => !n.read_at && !n.is_read
+                    ).length;
                     setUnreadCount(count);
                 }
             } catch (e) {
                 console.error('Failed to fetch notifications', e);
             }
         };
-        if (user) {
-            fetchNotifications();
-        }
+        if (user) fetchNotifications();
     }, [user]);
 
     return (
-        <header className="h-16 bg-white border-b border-[var(--gray-200)] px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
-            {/* Left Section */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={onMenuClick}
-                    className="lg:hidden text-[var(--gray-600)] hover:text-[var(--gray-900)] transition-colors"
-                >
-                    <FiMenu size={24} />
-                </button>
+        <header className="
+            sticky top-0 z-30
+            h-16
+            bg-[#0b1220]/95 backdrop-blur-xl
+            border-b border-white/10
+        ">
+            <div className="h-full px-4 lg:px-6 flex items-center justify-between">
+                {/* LEFT */}
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={onMenuClick}
+                        className="
+                            lg:hidden
+                            p-2 rounded-lg
+                            text-slate-300
+                            hover:text-white
+                            hover:bg-white/5
+                            transition
+                        "
+                        aria-label="Open sidebar"
+                    >
+                        <FiMenu size={22} />
+                    </button>
 
-                <div>
-                    <h2 className="text-lg font-semibold text-[var(--gray-900)]">
-                        Welcome back, {user?.full_name?.split(' ')[0] || user?.first_name || 'User'}!
-                    </h2>
-                    <p className="text-sm text-[var(--gray-500)]">
-                        {new Date().toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        })}
-                    </p>
+                    <div className="leading-tight">
+                        <h2 className="text-base font-semibold text-white">
+                            Welcome back, {user?.full_name?.split(' ')[0] || user?.first_name || 'User'}
+                        </h2>
+                        <p className="text-xs text-slate-400">
+                            {new Date().toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })}
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Right Section */}
-            <div className="flex items-center gap-3">
-                {/* Notifications */}
-                <button className="relative p-2 text-[var(--gray-600)] hover:text-[var(--gray-900)] hover:bg-[var(--gray-100)] rounded-lg transition-all">
-                    <FiBell size={20} />
-                    {unreadCount > 0 && (
-                        <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--error)] rounded-full"></span>
-                    )}
-                </button>
+                {/* RIGHT */}
+                <div className="flex items-center gap-2">
+                    {/* Notifications */}
+                    <button
+                        className="
+                            relative p-2 rounded-lg
+                            text-slate-300
+                            hover:text-white
+                            hover:bg-white/5
+                            transition
+                        "
+                        aria-label="Notifications"
+                    >
+                        <FiBell size={18} />
+                        {unreadCount > 0 && (
+                            <span className="
+                                absolute top-1.5 right-1.5
+                                w-2 h-2
+                                rounded-full
+                                bg-red-500
+                            " />
+                        )}
+                    </button>
 
-                {/* Logout Button */}
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={logout}
-                    className="hidden sm:flex"
-                >
-                    <FiLogOut size={18} className="mr-2" />
-                    Logout
-                </Button>
+                    {/* Logout (Desktop) */}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={logout}
+                        className="
+                            hidden sm:flex
+                            text-slate-300
+                            hover:text-white
+                        "
+                    >
+                        <FiLogOut size={16} className="mr-2" />
+                        Logout
+                    </Button>
 
-                {/* Mobile Logout */}
-                <button
-                    onClick={logout}
-                    className="sm:hidden p-2 text-[var(--gray-600)] hover:text-[var(--gray-900)] hover:bg-[var(--gray-100)] rounded-lg transition-all"
-                >
-                    <FiLogOut size={20} />
-                </button>
+                    {/* Logout (Mobile) */}
+                    <button
+                        onClick={logout}
+                        className="
+                            sm:hidden
+                            p-2 rounded-lg
+                            text-slate-300
+                            hover:text-white
+                            hover:bg-white/5
+                            transition
+                        "
+                        aria-label="Logout"
+                    >
+                        <FiLogOut size={18} />
+                    </button>
+                </div>
             </div>
         </header>
     );

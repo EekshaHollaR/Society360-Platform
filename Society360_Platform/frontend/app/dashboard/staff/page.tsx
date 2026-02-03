@@ -24,9 +24,9 @@ export default function StaffDashboard() {
                     staffApi.getPendingVisitors()
                 ]);
 
-                if (tasksRes.data) setTasks(tasksRes.data);
-                if (visitorsRes.data) setVisitors(visitorsRes.data);
-                if (pendingRes.data) setPendingVisitors(pendingRes.data);
+                if (tasksRes.data.success) setTasks(tasksRes.data.data || []);
+                if (visitorsRes.data.success) setVisitors(visitorsRes.data.data || []);
+                if (pendingRes.data.success) setPendingVisitors(pendingRes.data.data || []);
             } catch (error) {
                 console.error('Failed to fetch dashboard data', error);
                 toast.error('Failed to load dashboard data');

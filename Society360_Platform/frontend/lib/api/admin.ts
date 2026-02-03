@@ -28,6 +28,15 @@ export interface SystemConfig {
 }
 
 export const adminApi = {
+    // Dashboard & Reports
+    getDashboardStats: async () => {
+        return api.get('/admin/reports/dashboard');
+    },
+
+    getRecentActivity: async () => {
+        return api.get('/admin/audit-logs/recent?limit=10');
+    },
+
     // User Management
     getUsers: async (params?: { role?: string; status?: string; search?: string; page?: number }) => {
         return api.get('/admin/users', { params });
