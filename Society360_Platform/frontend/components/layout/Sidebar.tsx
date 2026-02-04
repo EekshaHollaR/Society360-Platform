@@ -36,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     border-r border-white/10
                     transform transition-transform duration-300 ease-in-out
                     ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                    lg:translate-x-0 lg:static lg:z-0
+                    lg:translate-x-0
                 `}
             >
                 {/* Logo Header */}
@@ -79,10 +79,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                         className={`
                                             flex items-center gap-3 px-3 py-2.5 rounded-lg
                                             text-sm font-medium transition
-                                            ${
-                                                isActive
-                                                    ? 'bg-indigo-500/15 text-indigo-400'
-                                                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                                            ${isActive
+                                                ? 'bg-indigo-500/15 text-indigo-400'
+                                                : 'text-slate-300 hover:text-white hover:bg-white/5'
                                             }
                                         `}
                                     >

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiDollarSign, FiClock, FiCheckCircle, FiDownload } from 'react-icons/fi';
+import { FiClock, FiDownload } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,7 @@ export default function BillsPage() {
             if (response.data.success) {
                 setBills(response.data.data);
             }
-        } catch (error) {
+        } catch {
             toast.error('Failed to load bills');
         } finally {
             setIsLoading(false);
@@ -32,10 +32,11 @@ export default function BillsPage() {
 
     const handlePay = async (id: string, amount: number) => {
         setPayingId(id);
-        // Simulate payment processing
         setTimeout(() => {
             toast.success(`Payment of $${amount} successful`);
-            setBills(prev => prev.map(b => b.id === id ? { ...b, status: 'paid' } : b));
+            setBills(prev =>
+                prev.map(b => (b.id === id ? { ...b, status: 'paid' } : b))
+            );
             setPayingId(null);
         }, 1500);
     };
@@ -46,34 +47,53 @@ export default function BillsPage() {
 
     return (
         <div className="space-y-8">
+
+            {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-[var(--gray-900)]">Bills & Payments</h1>
-                <p className="text-[var(--gray-500)]">Manage your monthly maintenance and other payments.</p>
+                <h1 className="text-2xl font-semibold text-white">
+                    Bills & Payments
+                </h1>
+                <p className="text-sm text-slate-400">
+                    Track dues and manage your payments
+                </p>
             </div>
 
             {isLoading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+                <div className="flex justify-center py-16">
+                    <div className="relative">
+                        <div className="h-8 w-8 rounded-full border-2 border-white/10" />
+                        <div className="absolute inset-0 h-8 w-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+                    </div>
                 </div>
             ) : (
                 <>
-                    {/* Summary Card */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-800 text-white border-none p-8">
+                    {/* Summary */}
+                    <Card className="bg-[#0b1220] border border-white/10 px-6 py-6">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
-                                <p className="text-blue-100 font-medium mb-1">Total Outstanding</p>
-                                <h2 className="text-4xl font-bold">${totalDue.toFixed(2)}</h2>
-                                <p className="text-sm text-blue-200 mt-2">
+                                <p className="text-slate-400 text-sm mb-1">
+                                    Total Outstanding
+                                </p>
+                                <h2 className="text-3xl font-bold text-white">
+                                    ${totalDue.toFixed(2)}
+                                </h2>
+                                <p className="text-xs text-slate-500 mt-1">
                                     {outstandingBills.length} pending bill(s)
                                 </p>
                             </div>
+
                             {outstandingBills.length > 0 && (
                                 <Button
-                                    variant="secondary"
                                     size="lg"
-                                    className="shadow-lg"
-                                    onClick={() => outstandingBills[0] && handlePay(outstandingBills[0].id, outstandingBills[0].amount)}
+                                    onClick={() =>
+                                        outstandingBills[0] &&
+                                        handlePay(
+                                            outstandingBills[0].id,
+                                            outstandingBills[0].amount
+                                        )
+                                    }
                                     isLoading={!!payingId}
+                                    className="bg-indigo-500 hover:bg-indigo-400"
                                 >
                                     Pay All Now
                                 </Button>
@@ -82,35 +102,58 @@ export default function BillsPage() {
                     </Card>
 
                     {/* Pending Bills */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-[var(--gray-900)]">Pending Bills</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">
+                            Pending Bills
+                        </h3>
+
                         {outstandingBills.length === 0 ? (
-                            <p className="text-[var(--gray-500)] italic">No pending bills. You&apos;re all caught up!</p>
+                            <p className="text-slate-400 italic">
+                                You’re all caught up 🎉
+                            </p>
                         ) : (
-                            outstandingBills.map((bill) => (
-                                <Card key={bill.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4 border-l-4 border-l-orange-400">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <h4 className="font-semibold text-lg text-[var(--gray-900)]">{bill.bill_type} Bill</h4>
-                                            <Badge variant="warning">Unpaid</Badge>
+                            outstandingBills.map(bill => (
+                                <Card
+                                    key={bill.id}
+                                    className="bg-[#0b1220] border border-white/10 px-5 py-4 hover:border-white/20 transition"
+                                >
+                                    <div className="flex flex-col sm:flex-row justify-between gap-4">
+
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="text-white font-semibold">
+                                                    {bill.bill_type} Bill
+                                                </h4>
+                                                <Badge className="bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                                    Unpaid
+                                                </Badge>
+                                            </div>
+
+                                            <p className="text-xs text-slate-500">
+                                                {bill.period_start} → {bill.period_end}
+                                            </p>
+
+                                            <div className="flex items-center gap-2 mt-2 text-sm text-red-400">
+                                                <FiClock />
+                                                Due {new Date(bill.due_date).toLocaleDateString()}
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-[var(--gray-500)]">
-                                            Period: {bill.period_start} to {bill.period_end}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-2 text-sm text-[var(--error)] font-medium">
-                                            <FiClock />
-                                            Due by {new Date(bill.due_date).toLocaleDateString()}
+
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xl font-bold text-white">
+                                                ${bill.amount}
+                                            </span>
+                                            <Button
+                                                onClick={() =>
+                                                    handlePay(bill.id, bill.amount)
+                                                }
+                                                isLoading={payingId === bill.id}
+                                                disabled={!!payingId}
+                                                className="bg-indigo-500 hover:bg-indigo-400"
+                                            >
+                                                Pay Now
+                                            </Button>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 w-full sm:w-auto">
-                                        <span className="text-xl font-bold text-[var(--gray-900)]">${bill.amount}</span>
-                                        <Button
-                                            onClick={() => handlePay(bill.id, bill.amount)}
-                                            isLoading={payingId === bill.id}
-                                            disabled={!!payingId}
-                                        >
-                                            Pay Now
-                                        </Button>
                                     </div>
                                 </Card>
                             ))
@@ -118,45 +161,73 @@ export default function BillsPage() {
                     </div>
 
                     {/* Payment History */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-[var(--gray-900)]">Payment History</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">
+                            Payment History
+                        </h3>
+
                         {pastBills.length === 0 ? (
-                            <p className="text-[var(--gray-500)] italic">No payment history available.</p>
+                            <p className="text-slate-400 italic">
+                                No payment history yet.
+                            </p>
                         ) : (
-                            <div className="bg-white rounded-xl border border-[var(--gray-200)] overflow-hidden">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-[var(--gray-50)] border-b border-[var(--gray-200)]">
+                            <div className="bg-[#0b1220] border border-white/10 rounded-xl overflow-hidden">
+
+                                <table className="w-full text-sm">
+                                    <thead className="border-b border-white/10 text-slate-400">
                                         <tr>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Description</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Date Paid</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Amount</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Status</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Action</th>
+                                            <th className="px-5 py-4 text-left">Description</th>
+                                            <th className="px-5 py-4 text-left">Date</th>
+                                            <th className="px-5 py-4 text-left">Amount</th>
+                                            <th className="px-5 py-4 text-left">Status</th>
+                                            <th className="px-5 py-4 text-left">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[var(--gray-200)]">
-                                        {pastBills.map((bill) => (
-                                            <tr key={bill.id} className="hover:bg-[var(--gray-50)]">
-                                                <td className="px-6 py-4">
-                                                    <p className="font-medium text-[var(--gray-900)]">{bill.bill_type}</p>
-                                                    <p className="text-xs text-[var(--gray-500)]">{bill.period_start} - {bill.period_end}</p>
+
+                                    <tbody className="divide-y divide-white/5">
+                                        {pastBills.map(bill => (
+                                            <tr
+                                                key={bill.id}
+                                                className="hover:bg-white/5 transition"
+                                            >
+                                                <td className="px-5 py-4 text-white">
+                                                    <div className="font-medium">
+                                                        {bill.bill_type}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500">
+                                                        {bill.period_start} → {bill.period_end}
+                                                    </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-[var(--gray-600)]">
-                                                    {new Date().toLocaleDateString()} {/* Mock date */}
+
+                                                <td className="px-5 py-4 text-slate-400">
+                                                    {new Date().toLocaleDateString()}
                                                 </td>
-                                                <td className="px-6 py-4 font-medium text-[var(--gray-900)]">${bill.amount}</td>
-                                                <td className="px-6 py-4">
-                                                    <Badge variant="success">Paid</Badge>
+
+                                                <td className="px-5 py-4 text-white font-medium">
+                                                    ${bill.amount}
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <Button variant="ghost" size="sm" className="text-[var(--primary)] hover:bg-blue-50">
-                                                        <FiDownload className="mr-2" /> Receipt
+
+                                                <td className="px-5 py-4">
+                                                    <Badge className="bg-green-500/10 text-green-400 border border-green-500/20">
+                                                        Paid
+                                                    </Badge>
+                                                </td>
+
+                                                <td className="px-5 py-4">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-indigo-400 hover:bg-white/5"
+                                                    >
+                                                        <FiDownload className="mr-2" />
+                                                        Receipt
                                                     </Button>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
+
                             </div>
                         )}
                     </div>
