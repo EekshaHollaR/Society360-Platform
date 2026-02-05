@@ -6,33 +6,41 @@ const VisitorController = {
     // Resident Action
     preApproveVisitor: async (req, res) => {
         try {
-            const { visitor_name, visitor_phone, purpose, unit_id } = req.body;
+            const { visitor_name, visitor_phone, name, phone_number, purpose, unit_id } = req.body;
             const userId = req.user.id; // From authMiddleware
+
+            // Use fallbacks from frontend field names if specific ones aren't provided
+            const final_name = visitor_name || name;
+            const final_phone = visitor_phone || phone_number;
+
+            if (!final_name) {
+                return res.status(400).json({ success: false, message: 'Visitor name is required' });
+            }
 
             // Verify if the user is associated with the unit
             const userUnits = await Unit.findUnitsByUser(userId);
             const isAuthorized = userUnits.some(unit => unit.id === unit_id);
 
             if (!isAuthorized && req.user.role !== 'admin') {
-                return res.status(403).json({ message: 'Not authorized for this unit' });
+                return res.status(403).json({ success: false, message: 'Not authorized for this unit' });
             }
 
             const visitor = await Visitor.create({
                 unit_id,
-                visitor_name,
-                visitor_phone,
+                visitor_name: final_name,
+                visitor_phone: final_phone,
                 purpose,
                 approved_by_user_id: userId,
                 status: 'approved'
             });
 
             // Log audit
-            await logAudit(userId, AUDIT_ACTIONS.VISITOR_APPROVED, 'visitor_logs', visitor.id, { visitor_name, unit_id }, req);
+            await logAudit(userId, AUDIT_ACTIONS.VISITOR_APPROVED, 'visitor_logs', visitor.id, { visitor_name: final_name, unit_id }, req);
 
-            res.status(201).json(visitor);
+            res.status(201).json({ success: true, data: visitor, message: 'Visitor pre-approved successfully' });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Server Error' });
+            res.status(500).json({ success: false, message: 'Server Error' });
         }
     },
 
@@ -49,24 +57,26 @@ const VisitorController = {
                 await logAudit(securityGuardId, AUDIT_ACTIONS.VISITOR_CHECKED_IN, 'visitor_logs', visitor_id, { method: 'PRE_APPROVED' }, req);
             } else {
                 // Walk-in creation
-                const { unit_id, visitor_name, visitor_phone, purpose } = req.body;
+                const { unit_id, visitor_name, visitor_phone, purpose, name, phone_number } = req.body;
+                const final_name = visitor_name || name;
+                const final_phone = visitor_phone || phone_number;
+
                 visitor = await Visitor.create({
                     unit_id,
-                    visitor_name,
-                    visitor_phone,
+                    visitor_name: final_name,
+                    visitor_phone: final_phone,
                     purpose,
                     security_guard_id: securityGuardId,
                     status: 'checked_in'
                 });
                 // Log audit
-                await logAudit(securityGuardId, AUDIT_ACTIONS.VISITOR_CHECKED_IN, 'visitor_logs', visitor.id, { method: 'WALK_IN', visitor_name, unit_id }, req);
+                await logAudit(securityGuardId, AUDIT_ACTIONS.VISITOR_CHECKED_IN, 'visitor_logs', visitor.id, { method: 'WALK_IN', visitor_name: final_name, unit_id }, req);
             }
 
-            console.log('Visitor check-in result:', visitor);
-            res.json(visitor);
+            res.json({ success: true, data: visitor, message: 'Visitor checked in' });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Server Error' });
+            res.status(500).json({ success: false, message: 'Server Error' });
         }
     },
 
@@ -78,10 +88,10 @@ const VisitorController = {
             // Log audit
             await logAudit(req.user.id, AUDIT_ACTIONS.VISITOR_CHECKED_OUT, 'visitor_logs', visitor_id, {}, req);
 
-            res.json(visitor);
+            res.json({ success: true, data: visitor, message: 'Visitor checked out' });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Server Error' });
+            res.status(500).json({ success: false, message: 'Server Error' });
         }
     },
 
@@ -91,49 +101,36 @@ const VisitorController = {
 
             if (role === 'resident') {
                 const userUnits = await Unit.findUnitsByUser(id);
-                const unitIds = userUnits.map(u => u.id);
-
-                // Fetch for each unit and merge
-                // This is checking history for one unit at a time or all?
-                // Model has findByUnit. 
-                // Let's just fetch for the first unit or support query param.
-                // For simplicity, let's just return for all their units.
                 const history = [];
                 for (const unit of userUnits) {
                     const logs = await Visitor.findByUnit(unit.id);
                     history.push(...logs);
                 }
-                // Sort by date key if possible
-                history.sort((a, b) => new Date(b.check_in_time) - new Date(a.check_in_time));
+                history.sort((a, b) => new Date(b.check_in_time || b.created_at) - new Date(a.check_in_time || a.created_at));
 
-                return res.json(history);
+                return res.json({ success: true, data: history });
             } else {
                 // Admin/Staff sees all
                 const history = await Visitor.findAll();
-                return res.json(history);
+                return res.json({ success: true, data: history });
             }
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Server Error' });
+            res.status(500).json({ success: false, message: 'Server Error' });
         }
     },
 
     getPendingVisitors: async (req, res) => {
         try {
-            // Staff/Admin usage
-            // This would ideally be a new query 'status = approved'.
-            // I'll implement a findAll and filter in JS for now to save a DB query addition,
-            // or I should add findByStatus to model.
-            // Model doesn't have findByStatus.
-            // I'll filter in memory for MVP (assuming low volume) or add method later.
             const allVisitors = await Visitor.findAll();
             const pending = allVisitors.filter(v => v.status === 'approved' || v.status === 'pending');
-            res.json(pending);
+            res.json({ success: true, data: pending });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Server Error' });
+            res.status(500).json({ success: false, message: 'Server Error' });
         }
     }
+
 };
 
 module.exports = VisitorController;

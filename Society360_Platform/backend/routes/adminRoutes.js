@@ -35,8 +35,6 @@ router.get('/users/:id', AdminController.getUserById);
 router.post(
     '/users',
     [
-        // Accept full_name for admin-created users (tests use full_name)
-        check('full_name', 'Full name is required').not().isEmpty(),
         check('email', 'Valid email is required').isEmail(),
         check('role', 'Role is required').isIn(['admin', 'resident', 'staff']),
         validate

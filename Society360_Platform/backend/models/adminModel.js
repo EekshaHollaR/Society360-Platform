@@ -11,7 +11,13 @@ const AdminModel = {
         const offset = (page - 1) * limit;
 
         let query = `
-            SELECT u.id, u.full_name, u.email, u.phone_number, u.status, u.profile_picture_url,
+            SELECT u.id, u.full_name, 
+                   split_part(u.full_name, ' ', 1) as first_name,
+                   CASE 
+                     WHEN position(' ' in u.full_name) > 0 THEN substring(u.full_name from position(' ' in u.full_name) + 1)
+                     ELSE ''
+                   END as last_name,
+                   u.email, u.phone_number, u.status, u.profile_picture_url,
                    u.created_at, u.updated_at, r.name as role
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.id
@@ -88,7 +94,13 @@ const AdminModel = {
      */
     getUserById: async (id) => {
         const query = `
-            SELECT u.id, u.full_name, u.email, u.phone_number, u.status, u.profile_picture_url,
+            SELECT u.id, u.full_name, 
+                   split_part(u.full_name, ' ', 1) as first_name,
+                   CASE 
+                     WHEN position(' ' in u.full_name) > 0 THEN substring(u.full_name from position(' ' in u.full_name) + 1)
+                     ELSE ''
+                   END as last_name,
+                   u.email, u.phone_number, u.status, u.profile_picture_url,
                    u.created_at, u.updated_at, r.name as role, r.id as role_id
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.id
@@ -138,7 +150,10 @@ const AdminModel = {
                 profile_picture_url = COALESCE($4, profile_picture_url),
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $5 AND deleted_at IS NULL
-            RETURNING id, full_name, email, phone_number, status, updated_at
+            RETURNING id, full_name, 
+                      split_part(full_name, ' ', 1) as first_name,
+                      substring(full_name from position(' ' in full_name) + 1) as last_name,
+                      email, phone_number, status, updated_at
         `;
 
         const values = [full_name, email, phone_number, profile_picture_url, id];

@@ -96,62 +96,59 @@ const ReportModel = {
     getFinanceReport: async (filters = {}) => {
         const { start_date, end_date } = filters;
 
-        let billsQuery = `
+        // Overall summary
+        const summaryQuery = `
             SELECT 
-                COUNT(*) as total_bills,
-                SUM(amount) as total_amount,
-                COUNT(*) FILTER (WHERE status = 'paid') as paid_bills,
-                SUM(amount) FILTER (WHERE status = 'paid') as paid_amount,
-                COUNT(*) FILTER (WHERE status = 'unpaid') as unpaid_bills,
-                SUM(amount) FILTER (WHERE status = 'unpaid') as unpaid_amount,
-                COUNT(*) FILTER (WHERE status = 'overdue') as overdue_bills,
-                SUM(amount) FILTER (WHERE status = 'overdue') as overdue_amount
-            FROM bills
-            WHERE 1=1
-        `;
-        const billsValues = [];
-        let paramCount = 1;
-
-        if (start_date) {
-            billsQuery += ` AND bill_date >= $${paramCount}`;
-            billsValues.push(start_date);
-            paramCount++;
-        }
-        if (end_date) {
-            billsQuery += ` AND bill_date <= $${paramCount}`;
-            billsValues.push(end_date);
-        }
-
-        const billsResult = await db.query(billsQuery, billsValues);
-
-        // Payment trends
-        let paymentsQuery = `
-            SELECT 
-                DATE(payment_date) as date,
-                COUNT(*) as payment_count,
-                SUM(amount_paid) as total_collected
+                COALESCE(SUM(amount_paid), 0) as total_revenue,
+                (SELECT COALESCE(SUM(amount), 0) FROM bills WHERE status IN ('unpaid', 'overdue')) as outstanding_dues
             FROM payments
             WHERE status = 'success'
         `;
-        const paymentsValues = [];
-        let paymentParamCount = 1;
+        const summaryResult = await db.query(summaryQuery);
 
-        if (start_date) {
-            paymentsQuery += ` AND payment_date >= $${paymentParamCount}`;
-            paymentsValues.push(start_date);
-            paymentParamCount++;
-        }
-        if (end_date) {
-            paymentsQuery += ` AND payment_date <= $${paymentParamCount}`;
-            paymentsValues.push(end_date);
-        }
+        // Monthly trends (last 6 months)
+        const trendsQuery = `
+            SELECT 
+                TO_CHAR(payment_date, 'Mon') as month,
+                SUM(amount_paid) as amount
+            FROM payments
+            WHERE status = 'success'
+            GROUP BY TO_CHAR(payment_date, 'Mon'), EXTRACT(MONTH FROM payment_date)
+            ORDER BY EXTRACT(MONTH FROM payment_date)
+            LIMIT 6
+        `;
+        const trendsResult = await db.query(trendsQuery);
 
-        paymentsQuery += ` GROUP BY DATE(payment_date) ORDER BY date DESC LIMIT 30`;
-        const paymentsResult = await db.query(paymentsQuery, paymentsValues);
+        // Recent transactions
+        const transactionsQuery = `
+            SELECT 
+                p.id,
+                u.full_name as user,
+                p.amount_paid as amount,
+                p.payment_date as date,
+                p.status
+            FROM payments p
+            JOIN users u ON p.user_id = u.id
+            ORDER BY p.payment_date DESC
+            LIMIT 10
+        `;
+        const transactionsResult = await db.query(transactionsQuery);
 
         return {
-            bills_summary: billsResult.rows[0],
-            payment_trends: paymentsResult.rows
+            totalRevenue: parseFloat(summaryResult.rows[0].total_revenue),
+            outstandingDues: parseFloat(summaryResult.rows[0].outstanding_dues),
+            totalExpenses: 0, // Not implemented in current schema
+            monthlyRevenue: trendsResult.rows.map(r => ({
+                month: r.month,
+                amount: parseFloat(r.amount)
+            })),
+            recentTransactions: transactionsResult.rows.map(r => ({
+                id: r.id,
+                user: r.user,
+                amount: parseFloat(r.amount),
+                date: r.date,
+                status: r.status === 'success' ? 'paid' : 'pending'
+            }))
         };
     },
 
@@ -314,30 +311,40 @@ const ReportModel = {
         `;
         const maintenanceResult = await db.query(maintenanceQuery);
 
-        // Finance
+        // Finance - Current Month Revenue
         const financeQuery = `
             SELECT 
-                SUM(amount) FILTER (WHERE status = 'unpaid') as unpaid_amount,
-                SUM(amount) FILTER (WHERE status = 'overdue') as overdue_amount,
-                COUNT(*) FILTER (WHERE status = 'unpaid' OR status = 'overdue') as pending_bills
-            FROM bills
+                COALESCE(SUM(amount_paid), 0) as monthly_revenue
+            FROM payments
+            WHERE status = 'success' 
+            AND EXTRACT(MONTH FROM payment_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND EXTRACT(YEAR FROM payment_date) = EXTRACT(YEAR FROM CURRENT_DATE)
         `;
         const financeResult = await db.query(financeQuery);
 
-        // Recent visitors (today)
-        const visitorsQuery = `
-            SELECT COUNT(*) as today_visitors
-            FROM visitor_logs
-            WHERE DATE(check_in_time) = CURRENT_DATE
+        // Pending Dues (optional but useful)
+        const duesQuery = `
+            SELECT 
+                COALESCE(SUM(amount), 0) as pending_dues
+            FROM bills
+            WHERE status IN ('unpaid', 'overdue')
         `;
-        const visitorsResult = await db.query(visitorsQuery);
+        const duesResult = await db.query(duesQuery);
 
         return {
+            usersCount: parseInt(usersResult.rows[0].total),
+            activeUsers: parseInt(usersResult.rows[0].active),
+            occupiedUnitsCount: parseInt(unitsResult.rows[0].occupied),
+            totalUnits: parseInt(unitsResult.rows[0].total),
+            openTicketsCount: parseInt(maintenanceResult.rows[0].open),
+            totalTickets: parseInt(maintenanceResult.rows[0].total),
+            monthlyRevenue: parseFloat(financeResult.rows[0].monthly_revenue),
+            pendingDues: parseFloat(duesResult.rows[0].pending_dues),
+            // Including full objects for backward compatibility if needed
             users: usersResult.rows[0],
             units: unitsResult.rows[0],
             maintenance: maintenanceResult.rows[0],
-            finance: financeResult.rows[0],
-            visitors: visitorsResult.rows[0]
+            finance: financeResult.rows[0]
         };
     }
 };

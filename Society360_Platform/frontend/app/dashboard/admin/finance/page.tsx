@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    LineChart, Line, PieChart, Pie, Cell
+    PieChart, Pie, Cell
 } from 'recharts';
-import { FiDollarSign, FiTrendingUp, FiTrendingDown, FiPieChart } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -19,10 +19,8 @@ export default function FinancePage() {
         const loadStats = async () => {
             try {
                 const response = await adminApi.getFinanceStats();
-                if (response.data.success) {
-                    setStats(response.data.data);
-                }
-            } catch (error) {
+                if (response.data.success) setStats(response.data.data);
+            } catch {
                 toast.error('Failed to load financial data');
             } finally {
                 setIsLoading(false);
@@ -31,93 +29,118 @@ export default function FinancePage() {
         loadStats();
     }, []);
 
-    const COLORS = ['#0D9488', '#F59E0B', '#EF4444', '#3B82F6'];
+    const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6'];
 
     if (isLoading) {
         return (
-            <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+            <div className="flex justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]" />
             </div>
         );
     }
 
     return (
         <div className="space-y-6">
+
+            {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-[var(--gray-900)]">Financial Overview</h1>
-                <p className="text-[var(--gray-500)]">Monitor revenue, expenses, and pending dues.</p>
+                <h1 className="text-2xl font-bold text-[var(--gray-900)]">
+                    Financial Overview
+                </h1>
+                <p className="text-[var(--gray-500)]">
+                    Real-time tracking of society revenue and dues.
+                </p>
             </div>
 
-            {/* Stats Grid */}
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                 <StatCard
                     title="Total Revenue"
-                    value={`$${stats?.totalRevenue.toLocaleString()}`}
+                    value={`$${stats?.totalRevenue.toLocaleString() || '0'}`}
                     icon={<FiDollarSign size={24} />}
-                    trend={{ value: 12.5, label: "vs last month", isPositive: true }}
+                    trend={{ value: 12.5, label: 'vs last month', isPositive: true }}
                     color="success"
                 />
+
                 <StatCard
                     title="Outstanding Dues"
-                    value={`$${stats?.outstandingDues.toLocaleString()}`}
+                    value={`$${stats?.outstandingDues.toLocaleString() || '0'}`}
                     icon={<FiTrendingDown size={24} />}
-                    trend={{ value: 5.2, label: "vs last month", isPositive: false }}
+                    trend={{ value: 5.2, label: 'vs last month', isPositive: false }}
                     color="error"
                 />
+
                 <StatCard
                     title="Total Expenses"
-                    value={`$${stats?.totalExpenses.toLocaleString()}`}
+                    value={`$${stats?.totalExpenses.toLocaleString() || '0'}`}
                     icon={<FiTrendingUp size={24} />}
-                    trend={{ value: 2.1, label: "vs last month", isPositive: true }}
+                    trend={{ value: 2.1, label: 'vs last month', isPositive: true }}
                     color="warning"
                 />
+
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* Revenue Chart */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Revenue Trend (6 Months)</CardTitle>
+                        <CardTitle>Revenue Trend</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[300px]">
+
+                    <CardContent className="h-[320px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats?.monthlyRevenue}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value / 1000}k`} />
-                                <Tooltip
-                                    cursor={{ fill: '#F3F4F6' }}
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            <BarChart data={stats?.monthlyRevenue || []}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                                <YAxis
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(v) => `$${v / 1000}k`}
                                 />
-                                <Bar dataKey="amount" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                                <Tooltip
+                                    cursor={{ fill: '#f3f4f6' }}
+                                    contentStyle={{
+                                        borderRadius: '10px',
+                                        border: 'none',
+                                        boxShadow: '0 10px 25px -10px rgba(0,0,0,.25)'
+                                    }}
+                                />
+                                <Bar
+                                    dataKey="amount"
+                                    fill="var(--primary)"
+                                    radius={[6, 6, 0, 0]}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
+                {/* Expense Pie (Using Mock for distribution as not yet backed by API) */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Expense Distribution</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[300px] flex items-center justify-center">
+
+                    <CardContent className="h-[320px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={[
                                         { name: 'Maintenance', value: 45 },
                                         { name: 'Utilities', value: 25 },
-                                        { name: 'Staff Salary', value: 20 },
+                                        { name: 'Staff', value: 20 },
                                         { name: 'Others', value: 10 },
                                     ]}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    paddingAngle={5}
+                                    innerRadius={70}
+                                    outerRadius={110}
+                                    paddingAngle={6}
                                     dataKey="value"
                                 >
-                                    {COLORS.map((color, index) => (
-                                        <Cell key={`cell-${index}`} fill={color} />
+                                    {COLORS.map((c, i) => (
+                                        <Cell key={i} fill={c} />
                                     ))}
                                 </Pie>
                                 <Tooltip />
@@ -125,33 +148,45 @@ export default function FinancePage() {
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
+
             </div>
 
-            {/* Recent Transactions */}
+            {/* Transactions */}
             <Card>
                 <CardHeader>
                     <CardTitle>Recent Transactions</CardTitle>
                 </CardHeader>
+
                 <CardContent>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="text-[var(--gray-500)] border-b border-[var(--gray-100)]">
-                                <tr>
-                                    <th className="py-3 font-medium">Date</th>
-                                    <th className="py-3 font-medium">User</th>
-                                    <th className="py-3 font-medium">Amount</th>
-                                    <th className="py-3 font-medium text-right">Status</th>
+                        <table className="w-full text-sm">
+                            <thead className="bg-[var(--gray-50)] border-b border-[var(--gray-200)]">
+                                <tr className="text-[var(--gray-500)]">
+                                    <th className="px-6 py-4 text-left font-semibold">Date</th>
+                                    <th className="px-6 py-4 text-left font-semibold">User</th>
+                                    <th className="px-6 py-4 text-left font-semibold">Amount</th>
+                                    <th className="px-6 py-4 text-right font-semibold">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--gray-100)]">
-                                {stats?.recentTransactions.map((tx) => (
-                                    <tr key={tx.id}>
-                                        <td className="py-3 text-[var(--gray-600)]">{new Date(tx.date).toLocaleDateString()}</td>
-                                        <td className="py-3 font-medium text-[var(--gray-900)]">{tx.user}</td>
-                                        <td className="py-3 font-medium text-[var(--gray-900)]">${tx.amount}</td>
-                                        <td className="py-3 text-right">
-                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${tx.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                                }`}>
+
+                            <tbody className="divide-y divide-[var(--gray-100)] text-[var(--gray-700)]">
+                                {(stats?.recentTransactions || []).map(tx => (
+                                    <tr key={tx.id} className="hover:bg-[var(--gray-50)] transition-colors">
+                                        <td className="px-6 py-4">
+                                            {new Date(tx.date).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-[var(--gray-900)]">
+                                            {tx.user}
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-[var(--gray-900)]">
+                                            ${tx.amount.toLocaleString()}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold
+                        ${tx.status === 'paid'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-yellow-100 text-yellow-700'}
+                      `}>
                                                 {tx.status === 'paid' ? 'Completed' : 'Pending'}
                                             </span>
                                         </td>
@@ -162,6 +197,7 @@ export default function FinancePage() {
                     </div>
                 </CardContent>
             </Card>
+
         </div>
     );
 }

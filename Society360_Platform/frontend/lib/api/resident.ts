@@ -3,8 +3,10 @@ import api from './auth';
 // Types
 export interface Visitor {
     id: string;
-    name: string;
-    phone_number: string;
+    visitor_name: string;
+    visitor_phone: string;
+    name?: string; // fallback
+    phone_number?: string; // fallback
     visitor_type: 'guest' | 'delivery' | 'service';
     expected_arrival?: string;
     status: 'pending' | 'approved' | 'denied' | 'checked_in' | 'checked_out';
@@ -13,6 +15,7 @@ export interface Visitor {
     check_out_time?: string;
     created_at?: string;
 }
+
 
 export interface Ticket {
     id: string;

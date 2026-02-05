@@ -13,7 +13,6 @@ import { Select } from '@/components/ui/Select';
 export default function ReportsPage() {
     const [dateRange, setDateRange] = useState('30d');
 
-    // Hardcoded mock data for visualization richness
     const visitorData = [
         { name: 'Mon', visitors: 45, deliveries: 20 },
         { name: 'Tue', visitors: 52, deliveries: 25 },
@@ -25,10 +24,10 @@ export default function ReportsPage() {
     ];
 
     const occupancyData = [
-        { name: 'A-Block', occupied: 90, vacent: 10 },
-        { name: 'B-Block', occupied: 85, vacent: 15 },
-        { name: 'C-Block', occupied: 70, vacent: 30 },
-        { name: 'D-Block', occupied: 95, vacent: 5 },
+        { name: 'A-Block', occupied: 90, vacant: 10 },
+        { name: 'B-Block', occupied: 85, vacant: 15 },
+        { name: 'C-Block', occupied: 70, vacant: 30 },
+        { name: 'D-Block', occupied: 95, vacant: 5 },
     ];
 
     const ticketTrend = [
@@ -40,115 +39,171 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--gray-900)]">Reports & Analytics</h1>
-                    <p className="text-[var(--gray-500)]">Detailed insights into society operations.</p>
+                    <h1 className="text-2xl font-bold text-[var(--gray-900)]">
+                        Reports & Analytics
+                    </h1>
+                    <p className="text-[var(--gray-500)]">
+                        Real-time operational performance insights.
+                    </p>
                 </div>
-                <div className="w-40">
+
+                <div className="w-48">
                     <Select
+                        value={dateRange}
+                        onChange={(e) => setDateRange(e.target.value)}
                         options={[
                             { value: '7d', label: 'Last 7 Days' },
                             { value: '30d', label: 'Last 30 Days' },
                             { value: '90d', label: 'Last 3 Months' },
                         ]}
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* Top Level Stats */}
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                 <StatCard
                     title="Active Residents"
                     value="245"
                     icon={<FiUsers size={24} />}
-                    trend={{ value: 5, label: "new this month", isPositive: true }}
+                    trend={{ value: 5, label: 'new this month', isPositive: true }}
                     color="primary"
                 />
+
                 <StatCard
                     title="Occupancy Rate"
                     value="88%"
                     icon={<FiHome size={24} />}
-                    trend={{ value: 1.5, label: "increase", isPositive: true }}
+                    trend={{ value: 1.5, label: 'increase', isPositive: true }}
                     color="success"
                 />
+
                 <StatCard
                     title="Avg Resolution Time"
                     value="4.5h"
                     icon={<FiActivity size={24} />}
-                    trend={{ value: 0.5, label: "slower than avg", isPositive: false }}
+                    trend={{ value: 0.5, label: 'slower than avg', isPositive: false }}
                     color="warning"
                 />
+
             </div>
 
+            {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Visitor Traffic Chart */}
+
+                {/* Visitor Flow */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Visitor Traffic (Weekly)</CardTitle>
+                        <CardTitle>Visitor Traffic</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[300px]">
+
+                    <CardContent className="h-[320px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={visitorData}>
                                 <defs>
-                                    <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                                    <linearGradient id="visitorsFill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.75} />
                                         <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                                 <YAxis axisLine={false} tickLine={false} />
                                 <Tooltip />
                                 <Legend />
-                                <Area type="monotone" dataKey="visitors" stroke="var(--primary)" fillOpacity={1} fill="url(#colorVisitors)" />
-                                <Area type="monotone" dataKey="deliveries" stroke="#10B981" fillOpacity={0.3} fill="#10B981" />
+
+                                <Area
+                                    type="monotone"
+                                    dataKey="visitors"
+                                    stroke="var(--primary)"
+                                    fill="url(#visitorsFill)"
+                                    strokeWidth={2}
+                                />
+
+                                <Area
+                                    type="monotone"
+                                    dataKey="deliveries"
+                                    stroke="#10b981"
+                                    fill="#10b981"
+                                    fillOpacity={0.25}
+                                    strokeWidth={2}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
-                {/* Maintenance Resolution */}
+                {/* Ticket Performance */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Maintenance Tickets Overview</CardTitle>
+                        <CardTitle>Maintenance Performance</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[300px]">
+
+                    <CardContent className="h-[320px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={ticketTrend}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                                 <YAxis axisLine={false} tickLine={false} />
                                 <Tooltip />
                                 <Legend />
-                                <Line type="monotone" dataKey="received" stroke="#EF4444" strokeWidth={2} activeDot={{ r: 8 }} />
-                                <Line type="monotone" dataKey="resolved" stroke="#10B981" strokeWidth={2} />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="received"
+                                    stroke="#ef4444"
+                                    strokeWidth={2.5}
+                                    activeDot={{ r: 6 }}
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="resolved"
+                                    stroke="#10b981"
+                                    strokeWidth={2.5}
+                                />
                             </LineChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
-                {/* Occupancy by Block */}
-                <Card className="col-span-1 lg:col-span-2">
+                {/* Occupancy */}
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Occupancy by Block</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[300px]">
+
+                    <CardContent className="h-[320px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={occupancyData} barSize={40}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                            <BarChart data={occupancyData} barSize={44}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                                 <YAxis axisLine={false} tickLine={false} />
                                 <Tooltip />
                                 <Legend />
-                                <Bar dataKey="occupied" fill="var(--primary)" name="Occupied Units" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="vacent" fill="#E5E7EB" name="Vacant Units" radius={[4, 4, 0, 0]} />
+
+                                <Bar
+                                    dataKey="occupied"
+                                    fill="var(--primary)"
+                                    radius={[6, 6, 0, 0]}
+                                />
+
+                                <Bar
+                                    dataKey="vacant"
+                                    fill="#e5e7eb"
+                                    radius={[6, 6, 0, 0]}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
+
             </div>
         </div>
     );
