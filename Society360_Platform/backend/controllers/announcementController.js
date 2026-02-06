@@ -37,10 +37,14 @@ const createAnnouncement = async (req, res) => {
 
         await Promise.all(notificationPromises);
 
-        res.status(201).json(announcement);
+        res.status(201).json({
+            success: true,
+            message: 'Announcement created successfully',
+            data: announcement
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -50,10 +54,13 @@ const createAnnouncement = async (req, res) => {
 const getAnnouncements = async (req, res) => {
     try {
         const announcements = await Announcement.getAll();
-        res.json(announcements);
+        res.json({
+            success: true,
+            data: announcements
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -67,13 +74,16 @@ const deleteAnnouncement = async (req, res) => {
             // Log audit
             await logAudit(req.user.id, AUDIT_ACTIONS.ANNOUNCEMENT_DELETED, 'announcements', req.params.id, {}, req);
 
-            res.json({ message: 'Announcement deleted' });
+            res.json({
+                success: true,
+                message: 'Announcement deleted'
+            });
         } else {
-            res.status(404).json({ message: 'Announcement not found' });
+            res.status(404).json({ success: false, message: 'Announcement not found' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 

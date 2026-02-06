@@ -38,7 +38,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                         aria-describedby={error ? `${props?.name || props?.id}-error` : undefined}
                         {...props}
                     >
-                        <option value="" disabled>Select an option</option>
+                        <option value="">Select an option</option>
                         {options.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -58,5 +58,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         );
     }
 );
+
+Select.displayName = 'Select';
 
 Select.displayName = 'Select';

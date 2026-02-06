@@ -51,17 +51,15 @@ const AdminController = {
      */
     createUser: async (req, res) => {
         try {
-            const { full_name, first_name, last_name, email, password, phone_number, role, status, profile_picture_url } = req.body;
+            const { full_name, email, password, phone_number, role, status, profile_picture_url } = req.body;
 
-            console.log('createUser payload:', { full_name, first_name, last_name, email, role, status });
-
-            const final_full_name = full_name || `${first_name || ''} ${last_name || ''}`.trim();
+            console.log('createUser payload:', { full_name, email, role, status });
 
             // Validation
-            if (!final_full_name || !email || !password || !role) {
+            if (!full_name || !email || !password || !role) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: name (full_name or first/last), email, password, role'
+                    message: 'Missing required fields: full_name, email, password, role'
                 });
             }
 
@@ -78,7 +76,7 @@ const AdminController = {
 
             // Create user
             const userData = {
-                full_name: final_full_name,
+                full_name,
                 email,
                 password_hash,
                 phone_number,
@@ -113,9 +111,7 @@ const AdminController = {
     updateUser: async (req, res) => {
         try {
             const { id } = req.params;
-            const { full_name, first_name, last_name, email, phone_number, profile_picture_url } = req.body;
-
-            const final_full_name = full_name || (first_name || last_name ? `${first_name || ''} ${last_name || ''}`.trim() : undefined);
+            const { full_name, email, phone_number, profile_picture_url } = req.body;
 
             // Get old user data for audit
             const oldUser = await AdminModel.getUserById(id);
@@ -124,7 +120,7 @@ const AdminController = {
             }
 
             const updatedUser = await AdminModel.updateUser(id, {
-                full_name: final_full_name,
+                full_name,
                 email,
                 phone_number,
                 profile_picture_url

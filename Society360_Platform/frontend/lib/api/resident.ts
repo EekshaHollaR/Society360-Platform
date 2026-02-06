@@ -2,20 +2,21 @@ import api from './auth';
 
 // Types
 export interface Visitor {
-    id: string;
-    visitor_name: string;
-    visitor_phone: string;
-    name?: string; // fallback
-    phone_number?: string; // fallback
-    visitor_type: 'guest' | 'delivery' | 'service';
+    id?: string;
+    name?: string;
+    phone_number?: string;
+    visitor_type?: 'guest' | 'delivery' | 'service';
     expected_arrival?: string;
-    status: 'pending' | 'approved' | 'denied' | 'checked_in' | 'checked_out';
+    status?: 'pending' | 'approved' | 'denied' | 'checked_in' | 'checked_out';
     purpose?: string;
     check_in_time?: string;
     check_out_time?: string;
     created_at?: string;
+    // Backend field names
+    visitor_name?: string;
+    visitor_phone?: string;
+    unit_id?: string;
 }
-
 
 export interface Ticket {
     id: string;
@@ -59,7 +60,14 @@ export const residentApi = {
     },
 
     preApproveVisitor: async (data: Partial<Visitor>) => {
-        return api.post('/visitors/pre-approve', data);
+        // Map frontend field names to backend expected names
+        const mappedData = {
+            visitor_name: data.name,
+            visitor_phone: data.phone_number,
+            unit_id: (data as any).unit_id,
+            purpose: data.purpose
+        };
+        return api.post('/visitors/pre-approve', mappedData);
     },
 
     checkInVisitor: async (id: string) => {
@@ -104,5 +112,10 @@ export const residentApi = {
 
     markNotificationRead: async (id: string) => {
         return api.put(`/communication/notifications/${id}/read`);
+    },
+
+    // Units
+    getMyUnits: async () => {
+        return api.get('/units/my');
     }
 };

@@ -72,32 +72,37 @@ export default function ResidentDashboard() {
                         value={unit?.unit_number || 'N/A'}
                         icon={<FiHome size={24} />}
                         color="primary"
+                        onClick={() => window.location.href = '/dashboard/resident/unit'}
                     />
                     <StatCard
                         title="Outstanding Bill"
                         value={`$${outstandingAmount.toFixed(2)}`}
                         icon={<FiDollarSign size={24} />}
                         color="error"
+                        onClick={() => window.location.href = '/dashboard/resident/bills'}
                     />
                     <StatCard
                         title="Open Request"
                         value={openTicketsCount.toString()}
                         icon={<FiTool size={24} />}
                         color="warning"
+                        onClick={() => window.location.href = '/dashboard/resident/maintenance'}
                     />
                     <StatCard
-                        title="Notifications"
-                        value={`${newAnnouncementsCount} New`}
+                        title="Announcements"
+                        value={`${announcements.length} Recent`}
                         icon={<FiBell size={24} />}
                         color="info"
+                        onClick={() => window.location.href = '/dashboard/resident/announcements'}
                     />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Recent Announcements */}
                     <Card className="lg:col-span-2">
-                        <CardHeader>
+                        <CardHeader className="flex justify-between items-center">
                             <CardTitle>Community Announcements</CardTitle>
+                            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/dashboard/resident/announcements'}>View All</Button>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -126,17 +131,17 @@ export default function ResidentDashboard() {
                             <CardTitle>I want to...</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Button className="w-full" variant="primary">
+                            <Button className="w-full" variant="primary" onClick={() => window.location.href = '/dashboard/resident/visitors'}>
                                 Pre-approve Visitor
                             </Button>
-                            <Button className="w-full" variant="secondary">
+                            <Button className="w-full" variant="secondary" onClick={() => window.location.href = '/dashboard/resident/maintenance'}>
                                 Report Issue
                             </Button>
-                            <Button className="w-full" variant="outline">
+                            <Button className="w-full" variant="outline" onClick={() => window.location.href = '/dashboard/resident/bills'}>
                                 Pay Bill
                             </Button>
-                            <Button className="w-full" variant="ghost">
-                                View Community Rules
+                            <Button className="w-full" variant="ghost" onClick={() => window.location.href = '/dashboard/resident/unit'}>
+                                My Unit Details
                             </Button>
                         </CardContent>
                     </Card>

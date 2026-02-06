@@ -314,6 +314,31 @@ const UnitController = {
             console.error('Error removing resident:', error);
             res.status(500).json({ success: false, message: 'Failed to remove resident', error: error.message });
         }
+    },
+
+    // ==================== RESIDENT METHODS ====================
+
+    /**
+     * Get units for the current logged in user
+     * GET /api/units/my
+     */
+    getMyUnits: async (req, res) => {
+        try {
+            const units = await Unit.findUnitsByUser(req.user.id);
+
+            // For each unit, get full details
+            const detailedUnits = await Promise.all(
+                units.map(u => Unit.getWithResidents(u.id))
+            );
+
+            res.status(200).json({
+                success: true,
+                data: detailedUnits
+            });
+        } catch (error) {
+            console.error('Error fetching my units:', error);
+            res.status(500).json({ success: false, message: 'Failed to fetch your units', error: error.message });
+        }
     }
 };
 

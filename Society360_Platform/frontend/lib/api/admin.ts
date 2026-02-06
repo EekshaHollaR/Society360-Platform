@@ -82,5 +82,42 @@ export const adminApi = {
 
     updateConfig: async (key: string, value: string) => {
         return api.put(`/admin/config/${key}`, { value });
+    },
+
+    // Unit Management
+    getUnits: async () => {
+        return api.get('/admin/units');
+    },
+
+    createUnit: async (data: any) => {
+        return api.post('/admin/units', data);
+    },
+
+    updateUnit: async (id: string, data: any) => {
+        return api.put(`/admin/units/${id}`, data);
+    },
+
+    deleteUnit: async (id: string) => {
+        return api.delete(`/admin/units/${id}`);
+    },
+    assignResident: async (unitId: string, data: any) => {
+        return api.post(`/admin/units/${unitId}/residents`, data);
+    },
+    removeResident: async (unitId: string, userId: string) => {
+        return api.delete(`/admin/units/${unitId}/residents/${userId}`);
+    },
+
+    // Blocks
+    getBlocks: async () => {
+        return api.get('/admin/blocks');
+    },
+
+    createBlock: async (data: any) => {
+        return api.post('/admin/blocks', data);
+    },
+
+    // Audit Logs
+    getAuditLogs: async (params?: any) => {
+        return api.get('/admin/audit-logs', { params });
     }
 };

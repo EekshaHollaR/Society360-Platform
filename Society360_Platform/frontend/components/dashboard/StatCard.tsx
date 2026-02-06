@@ -11,6 +11,8 @@ interface StatCardProps {
         isPositive: boolean;
     };
     color?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'info';
+    onClick?: () => void;
+    className?: string;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -19,6 +21,8 @@ export const StatCard: React.FC<StatCardProps> = ({
     icon,
     trend,
     color = 'primary',
+    onClick,
+    className = '',
 }) => {
     const colorMap = {
         primary: 'bg-indigo-500/10 text-indigo-400',
@@ -32,7 +36,8 @@ export const StatCard: React.FC<StatCardProps> = ({
 
     return (
         <Card
-            className="
+            onClick={onClick}
+            className={`
                 flex items-start justify-between
                 min-w-[220px]
                 bg-[#0b1220]
@@ -40,9 +45,9 @@ export const StatCard: React.FC<StatCardProps> = ({
                 rounded-xl
                 px-5 py-4
                 transition-all
-                hover:-translate-y-0.5
-                hover:border-white/20
-            "
+                ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:border-white/20' : ''}
+                ${className}
+            `}
         >
             {/* Left content */}
             <div>
@@ -57,11 +62,10 @@ export const StatCard: React.FC<StatCardProps> = ({
                 {trend && (
                     <div className="flex items-center text-xs">
                         <span
-                            className={`font-medium mr-1.5 ${
-                                trend.isPositive
-                                    ? 'text-emerald-400'
-                                    : 'text-red-400'
-                            }`}
+                            className={`font-medium mr-1.5 ${trend.isPositive
+                                ? 'text-emerald-400'
+                                : 'text-red-400'
+                                }`}
                         >
                             {trend.isPositive ? '+' : ''}
                             {trend.value}%

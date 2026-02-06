@@ -57,7 +57,7 @@ export default function VisitorsPage() {
                 toast.error(response.data.message || 'Failed to pre-approve visitor');
             }
         } catch (err: unknown) {
-            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string, string> } } };
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
             const message = errorObj.response?.data?.message || 'Failed to pre-approve visitor';
 
             // Map field errors if present
@@ -97,7 +97,7 @@ export default function VisitorsPage() {
 
             {isLoading ? (
                 <div className="grid gap-4">
-                    {[1, 2, 3].map((i) => (
+                    {[1,2,3].map((i) => (
                         <Card key={i} className="p-6 animate-pulse">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-[var(--gray-200)]"></div>
@@ -120,10 +120,10 @@ export default function VisitorsPage() {
                             <Card key={visitor.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full bg-[var(--gray-100)] flex items-center justify-center text-[var(--gray-600)] font-semibold text-lg">
-                                        {(visitor.visitor_name || visitor.name || 'V')[0]}
+                                        {visitor.name[0]}
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-[var(--gray-900)]">{visitor.visitor_name || visitor.name || 'Unknown'}</h3>
+                                        <h3 className="font-semibold text-[var(--gray-900)]">{visitor.name}</h3>
                                         <div className="flex items-center gap-2 text-sm text-[var(--gray-500)] mt-1">
                                             <span>{visitor.visitor_type}</span>
                                             <span>•</span>
@@ -158,41 +158,17 @@ export default function VisitorsPage() {
                     <Input
                         label="Full Name"
                         placeholder="e.g. John Doe"
-                        {...register('visitor_name', { required: 'Name is required', minLength: { value: 2, message: 'Please enter a full name' } })}
-                        error={errors.visitor_name?.message}
+                        {...register('name', { required: 'Name is required', minLength: { value: 2, message: 'Please enter a full name' } })}
+                        error={errors.name?.message}
                     />
                     <Input
                         label="Phone Number"
                         placeholder="e.g. +1 555 555 5555"
-                        {...register('visitor_phone', {
+                        {...register('phone_number', {
                             required: 'Phone number is required',
                             pattern: { value: /^[+]?\d{7,15}$/, message: 'Please enter a valid phone number' }
                         })}
-                        error={errors.visitor_phone?.message}
-                    />
-                    <Select
-                        label="Visitor Type"
-                        options={[
-                            { value: 'guest', label: 'Guest' },
-                            { value: 'delivery', label: 'Delivery' },
-                            { value: 'service', label: 'Service/Repair' },
-                        ]}
-                        {...register('visitor_type', { required: 'Type is required' })}
-                    />
-                    <Input
-                        label="Expected Arrival"
-                        type="datetime-local"
-                        {...register('expected_arrival', {
-                            required: 'Arrival time is required',
-                            validate: (value) => {
-                                if (!value) return 'Arrival time is required';
-                                const selected = new Date(value);
-                                if (isNaN(selected.getTime())) return 'Invalid date';
-                                if (selected.getTime() < Date.now() - 5 * 60 * 1000) return 'Arrival cannot be in the past';
-                                return true;
-                            }
-                        })}
-                        error={errors.expected_arrival?.message}
+                        error={errors.phone_number?.message}
                     />
                     <Input
                         label="Purpose (Optional)"

@@ -57,12 +57,14 @@ export default function AdminDashboard() {
                             value={stats.usersCount?.toString() || '0'}
                             icon={<FiUsers size={24} />}
                             color="primary"
+                            onClick={() => window.location.href = '/dashboard/admin/users'}
                         />
                         <StatCard
                             title="Occupied Units"
                             value={stats.occupiedUnitsCount?.toString() || '0'}
                             icon={<FiGrid size={24} />}
                             color="secondary"
+                            onClick={() => window.location.href = '/dashboard/admin/units'}
                         />
                         <StatCard
                             title="Open Tickets"
@@ -75,6 +77,7 @@ export default function AdminDashboard() {
                             value={`$${stats.monthlyRevenue?.toLocaleString() || '0'}`}
                             icon={<FiDollarSign size={24} />}
                             color="success"
+                            onClick={() => window.location.href = '/dashboard/admin/finance'}
                         />
                     </div>
                 )}
@@ -84,7 +87,7 @@ export default function AdminDashboard() {
                     <Card className="lg:col-span-2">
                         <CardHeader className="flex justify-between items-center">
                             <CardTitle>Recent Activity</CardTitle>
-                            <Button variant="ghost" size="sm">View all</Button>
+                            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/dashboard/admin/audit'}>View all</Button>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -116,16 +119,16 @@ export default function AdminDashboard() {
                             <CardTitle>Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Button className="w-full justify-start gap-3" variant="outline">
+                            <Button className="w-full justify-start gap-3" variant="outline" onClick={() => window.location.href = '/dashboard/admin/users'}>
                                 <FiUsers size={18} /> Add New User
                             </Button>
-                            <Button className="w-full justify-start gap-3" variant="outline">
-                                <FiGrid size={18} /> Assign Unit
+                            <Button className="w-full justify-start gap-3" variant="outline" onClick={() => window.location.href = '/dashboard/admin/units'}>
+                                <FiGrid size={18} /> Manage Units
                             </Button>
-                            <Button className="w-full justify-start gap-3" variant="outline">
-                                <FiAlertCircle size={18} /> Create Announcement
+                            <Button className="w-full justify-start gap-3" variant="outline" onClick={() => window.location.href = '/dashboard/admin/config'}>
+                                <FiAlertCircle size={18} /> System Config
                             </Button>
-                            <Button className="w-full justify-start gap-3" variant="outline">
+                            <Button className="w-full justify-start gap-3" variant="outline" onClick={() => window.location.href = '/dashboard/admin/finance'}>
                                 <FiDollarSign size={18} /> Generate Bills
                             </Button>
                         </CardContent>

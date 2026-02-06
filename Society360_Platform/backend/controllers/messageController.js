@@ -38,10 +38,14 @@ const postMessage = async (req, res) => {
             }
         }
 
-        res.status(201).json(message);
+        res.status(201).json({
+            success: true,
+            message: 'Message posted successfully',
+            data: message
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -51,10 +55,13 @@ const postMessage = async (req, res) => {
 const getMessages = async (req, res) => {
     try {
         const messages = await Message.getAll();
-        res.json(messages);
+        res.json({
+            success: true,
+            data: messages
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -68,7 +75,7 @@ const deleteMessage = async (req, res) => {
         const checkResult = await require('../config/db').query(checkQuery, [req.params.id]);
 
         if (checkResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Message not found' });
+            return res.status(404).json({ success: false, message: 'Message not found' });
         }
 
         const messageOwnerId = checkResult.rows[0].user_id;
@@ -80,13 +87,16 @@ const deleteMessage = async (req, res) => {
             // Log audit
             await logAudit(req.user.id, AUDIT_ACTIONS.MESSAGE_DELETED, 'messages', req.params.id, { deleted_by: req.user.id }, req);
 
-            res.json({ message: 'Message deleted' });
+            res.json({
+                success: true,
+                message: 'Message deleted'
+            });
         } else {
-            res.status(403).json({ message: 'Not authorized to delete this message' });
+            res.status(403).json({ success: false, message: 'Not authorized to delete this message' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -100,13 +110,17 @@ const flagMessage = async (req, res) => {
             // Log audit
             await logAudit(req.user.id, 'MESSAGE_FLAGGED', 'messages', req.params.id, {}, req);
 
-            res.json({ message: 'Message flagged', data: flagged });
+            res.json({
+                success: true,
+                message: 'Message flagged',
+                data: flagged
+            });
         } else {
-            res.status(404).json({ message: 'Message not found' });
+            res.status(404).json({ success: false, message: 'Message not found' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 

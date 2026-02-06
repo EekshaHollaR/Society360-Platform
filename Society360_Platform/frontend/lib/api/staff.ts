@@ -53,5 +53,10 @@ export const staffApi = {
 
     logVisitorCheckOut: async (visitorId: string) => {
         return api.post('/visitors/check-out', { visitor_id: visitorId });
+    },
+
+    // Announcements
+    getAnnouncements: async () => {
+        return api.get('/communication/announcements');
     }
 };

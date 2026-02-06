@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiTool, FiUserCheck, FiClock, FiCalendar } from 'react-icons/fi';
+import { FiTool, FiUserCheck, FiClock, FiCalendar, FiBell } from 'react-icons/fi';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -68,24 +68,28 @@ export default function StaffDashboard() {
                         value={assignedTasksCount.toString()}
                         icon={<FiTool size={24} />}
                         color="primary"
+                        onClick={() => window.location.href = '/dashboard/staff/maintenance'}
                     />
                     <StatCard
                         title="Today's Visitors"
                         value={todaysVisitorsCount.toString()}
                         icon={<FiUserCheck size={24} />}
                         color="secondary"
+                        onClick={() => window.location.href = '/dashboard/staff/visitors'}
                     />
                     <StatCard
                         title="Pending Approvals"
                         value={pendingCount.toString()}
                         icon={<FiClock size={24} />}
                         color="warning"
+                        onClick={() => window.location.href = '/dashboard/staff/visitors'}
                     />
                     <StatCard
-                        title="Upcoming Events"
-                        value="3" // Placeholder as we don't have events API yet
-                        icon={<FiCalendar size={24} />}
+                        title="Announcements"
+                        value="Check"
+                        icon={<FiBell size={24} />}
                         color="info"
+                        onClick={() => window.location.href = '/dashboard/staff/announcements'}
                     />
                 </div>
 
@@ -94,7 +98,7 @@ export default function StaffDashboard() {
                     <Card>
                         <CardHeader className="flex justify-between items-center">
                             <CardTitle>Assigned Tasks</CardTitle>
-                            <Button variant="ghost" size="sm">View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => window.location.href = '/dashboard/staff/maintenance'}>View All</Button>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
@@ -124,7 +128,7 @@ export default function StaffDashboard() {
                     <Card>
                         <CardHeader className="flex justify-between items-center">
                             <CardTitle>Recent Visitors</CardTitle>
-                            <Button size="sm">Log New Visitor</Button>
+                            <Button size="sm" onClick={() => window.location.href = '/dashboard/staff/visitors'}>Manage Visitors</Button>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">

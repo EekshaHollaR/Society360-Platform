@@ -41,13 +41,17 @@ export default function MaintenancePage() {
     const unitId = user?.units?.[0]?.id;
 
     const onSubmit = async (data: Partial<Ticket>) => {
+        console.log('Maintenance form submit invoked with data:', data);
         if (!unitId) {
             toast.error('No unit associated with this account');
             return;
         }
 
         try {
-            const response = await residentApi.createTicket({ ...data, unit_id: unitId });
+            const payload = { ...data, unit_id: unitId };
+            console.log('Sending createTicket payload:', payload);
+            const response = await residentApi.createTicket(payload);
+            console.log('createTicket response:', response);
             if (response.data.success) {
                 toast.success('Ticket created successfully');
                 setIsModalOpen(false);

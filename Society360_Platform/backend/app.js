@@ -54,6 +54,7 @@ app.use('/api/visitors', visitorRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/finance', require('./routes/financeRoutes'));
 app.use('/api/communication', communicationRoutes);
+app.use('/api/units', require('./routes/unitRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
 

@@ -6,10 +6,13 @@ const Notification = require('../models/notificationModel');
 const getUserNotifications = async (req, res) => {
     try {
         const notifications = await Notification.getByUser(req.user.id);
-        res.json(notifications);
+        res.json({
+            success: true,
+            data: notifications
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 
@@ -20,13 +23,17 @@ const markNotificationRead = async (req, res) => {
     try {
         const updated = await Notification.markAsRead(req.params.id);
         if (updated) {
-            res.json(updated);
+            res.json({
+                success: true,
+                message: 'Notification marked as read',
+                data: updated
+            });
         } else {
-            res.status(404).json({ message: 'Notification not found' });
+            res.status(404).json({ success: false, message: 'Notification not found' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };
 

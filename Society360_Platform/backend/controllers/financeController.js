@@ -24,10 +24,14 @@ exports.generateMonthlyBills = async (req, res) => {
         // Log audit
         await logAudit(req.user.id, AUDIT_ACTIONS.BILL_CREATED, 'bills', newBill.id, { unit_id, amount, bill_type }, req);
 
-        res.status(201).json({ message: 'Bill generated successfully', bill: newBill });
+        res.status(201).json({
+            success: true,
+            message: 'Bill generated successfully',
+            data: newBill
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error generating bill' });
+        res.status(500).json({ success: false, message: 'Server Error generating bill' });
     }
 };
 
@@ -37,10 +41,16 @@ exports.getBills = async (req, res) => {
             // Admin/Staff can see all or filter by unit
             if (req.query.unit_id) {
                 const bills = await Finance.getBillsByUnit(req.query.unit_id);
-                return res.json(bills);
+                return res.json({
+                    success: true,
+                    data: bills
+                });
             }
             const bills = await Finance.getAllBills();
-            return res.json(bills);
+            return res.json({
+                success: true,
+                data: bills
+            });
         } else {
             // Residents see their own unit's bills
             // Assumes middleware has populated req.user and we can find their unit.
@@ -52,16 +62,19 @@ exports.getBills = async (req, res) => {
             // A robust check would verify req.user.id owns req.query.unit_id.
 
             if (!req.query.unit_id) {
-                return res.status(400).json({ message: 'Unit ID required' });
+                return res.status(400).json({ success: false, message: 'Unit ID required' });
             }
             // TODO: Verify req.user is associated with req.query.unit_id
 
             const bills = await Finance.getBillsByUnit(req.query.unit_id);
-            res.json(bills);
+            res.json({
+                success: true,
+                data: bills
+            });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error fetching bills' });
+        res.status(500).json({ success: false, message: 'Server Error fetching bills' });
     }
 };
 
@@ -72,17 +85,17 @@ exports.payBill = async (req, res) => {
 
         const bill = await Finance.getBillById(bill_id);
         if (!bill) {
-            return res.status(404).json({ message: 'Bill not found' });
+            return res.status(404).json({ success: false, message: 'Bill not found' });
         }
 
         if (bill.status === 'paid') {
-            return res.status(400).json({ message: 'Bill is already paid' });
+            return res.status(400).json({ success: false, message: 'Bill is already paid' });
         }
 
         // Simple simulation: Amount must match exact bill amount
         if (parseFloat(amount) !== parseFloat(bill.amount)) {
             // In real world, partial payments might be allowed.
-            return res.status(400).json({ message: 'Payment amount must match bill amount' });
+            return res.status(400).json({ success: false, message: 'Payment amount must match bill amount' });
         }
 
         // Simulate transaction reference
@@ -101,11 +114,15 @@ exports.payBill = async (req, res) => {
         // Log audit
         await logAudit(payer_id, AUDIT_ACTIONS.PAYMENT_RECORDED, 'payments', payment.id, { bill_id, amount, payment_method }, req);
 
-        res.status(200).json({ message: 'Payment successful', payment });
+        res.status(200).json({
+            success: true,
+            message: 'Payment successful',
+            data: payment
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error processing payment' });
+        res.status(500).json({ success: false, message: 'Server Error processing payment' });
     }
 };
 
@@ -115,31 +132,37 @@ exports.getReceipt = async (req, res) => {
         const payment = await Finance.getPaymentById(paymentId);
 
         if (!payment) {
-            return res.status(404).json({ message: 'Payment not found' });
+            return res.status(404).json({ success: false, message: 'Payment not found' });
         }
 
         // In a real app, verify user owns the payment or is admin
 
         res.json({
-            receipt_id: payment.id,
-            date: payment.payment_date,
-            amount: payment.amount_paid,
-            method: payment.payment_method,
-            transaction_ref: payment.transaction_reference,
-            status: 'Verified'
+            success: true,
+            data: {
+                receipt_id: payment.id,
+                date: payment.payment_date,
+                amount: payment.amount_paid,
+                method: payment.payment_method,
+                transaction_ref: payment.transaction_reference,
+                status: 'Verified'
+            }
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error fetching receipt' });
+        res.status(500).json({ success: false, message: 'Server Error fetching receipt' });
     }
 };
 
 exports.getFinancialReports = async (req, res) => {
     try {
         const stats = await Finance.getFinancialStats();
-        res.json(stats);
+        res.json({
+            success: true,
+            data: stats
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server Error fetching reports' });
+        res.status(500).json({ success: false, message: 'Server Error fetching reports' });
     }
 };
