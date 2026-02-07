@@ -41,8 +41,11 @@ export default function UnitManagementPage() {
     const { register, handleSubmit, reset, setValue, formState: { errors } } =
         useForm<Partial<Unit>>();
 
-    const { register: registerAssign, handleSubmit: handleSubmitAssign, reset: resetAssign } =
+    const { register: registerAssign, handleSubmit: handleSubmitAssign, reset: resetAssign, formState: { errors: assignErrors, isSubmitting: isAssigning } } =
         useForm<{ user_id: string; resident_type: string }>();
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -97,18 +100,21 @@ export default function UnitManagementPage() {
     };
 
     const onSubmit = async (data: Partial<Unit>) => {
+        setIsSubmitting(true);
         try {
             if (editingUnit) {
                 await adminApi.updateUnit(editingUnit.id, data);
-                toast.success('Unit updated');
+                toast.success('Unit updated successfully');
             } else {
                 await adminApi.createUnit(data);
-                toast.success('Unit created');
+                toast.success('Unit created successfully');
             }
             setIsModalOpen(false);
             fetchData();
-        } catch {
-            toast.error('Operation failed');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Operation failed');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -136,9 +142,11 @@ export default function UnitManagementPage() {
         }
     };
 
-    const filteredUnits = filterBlock === 'all'
-        ? units
-        : units.filter(u => u.block_id === filterBlock);
+    const filteredUnits = units.filter(u => {
+        const matchesBlock = filterBlock === 'all' || u.block_id === filterBlock;
+        const matchesSearch = u.unit_number.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesBlock && matchesSearch;
+    });
 
     return (
         <div className="space-y-6">
@@ -163,6 +171,8 @@ export default function UnitManagementPage() {
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
                         <input
                             placeholder="Search by unit number..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--gray-300)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-50 outline-none transition-all text-gray-900"
                         />
                     </div>
@@ -255,7 +265,8 @@ export default function UnitManagementPage() {
                                 { value: '4BHK', label: '4 BHK' },
                                 { value: 'Penthouse', label: 'Penthouse' },
                             ]}
-                            {...register('type')}
+                            {...register('type', { required: 'Unit type is required' })}
+                            error={errors.type?.message}
                         />
                     </div>
 
@@ -267,14 +278,15 @@ export default function UnitManagementPage() {
                             { value: 'maintenance', label: 'Maintenance' },
                             { value: 'reserved', label: 'Reserved' },
                         ]}
-                        {...register('status')}
+                        {...register('status', { required: 'Status is required' })}
+                        error={errors.status?.message}
                     />
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-[var(--gray-100)] mt-6">
                         <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button type="submit" isLoading={isSubmitting}>
                             {editingUnit ? 'Update Unit' : 'Add Unit'}
                         </Button>
                     </div>
@@ -284,29 +296,30 @@ export default function UnitManagementPage() {
             {/* Assign Resident Modal */}
             <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title={`Assign Resident to Unit ${selectedUnit?.unit_number}`}>
                 <form onSubmit={handleSubmitAssign(onAssignSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Resident</label>
-                        <select {...registerAssign('user_id', { required: true })} className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
-                            <option value="">Select a user...</option>
-                            {residents.map(r => (
-                                <option key={r.id} value={r.id}>{r.full_name} ({r.email})</option>
-                            ))}
-                        </select>
-                    </div>
+                    <div className="space-y-4">
+                        <Select
+                            label="Select Resident"
+                            options={residents.map(r => ({ value: r.id, label: `${r.full_name || r.first_name + ' ' + r.last_name} (${r.email})` }))}
+                            {...registerAssign('user_id', { required: 'Please select a resident' })}
+                            error={assignErrors.user_id?.message}
+                        />
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Resident Type</label>
-                        <select {...registerAssign('resident_type', { required: true })} className="w-full h-10 px-3 rounded-md border border-gray-200">
-                            <option value="owner">Owner</option>
-                            <option value="tenant">Tenant</option>
-                            <option value="family_member">Family Member</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <Select
+                            label="Resident Type"
+                            options={[
+                                { value: 'owner', label: 'Owner' },
+                                { value: 'tenant', label: 'Tenant' },
+                                { value: 'family_member', label: 'Family Member' },
+                                { value: 'other', label: 'Other' },
+                            ]}
+                            {...registerAssign('resident_type', { required: 'Please select resident type' })}
+                            error={assignErrors.resident_type?.message}
+                        />
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3">
                         <Button type="button" variant="ghost" onClick={() => setIsAssignModalOpen(false)}>Cancel</Button>
-                        <Button type="submit">Assign Resident</Button>
+                        <Button type="submit" isLoading={isAssigning}>Assign Resident</Button>
                     </div>
                 </form>
             </Modal>

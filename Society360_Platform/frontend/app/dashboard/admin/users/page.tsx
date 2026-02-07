@@ -18,14 +18,17 @@ export default function UserManagementPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [filterRole, setFilterRole] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } =
-        useForm<Partial<User>>();
+        useForm<User | any>();
 
     const fetchUsers = async () => {
         try {
             const response = await adminApi.getUsers({
-                role: filterRole !== 'all' ? filterRole : undefined
+                role: filterRole !== 'all' ? filterRole : undefined,
+                search: searchQuery || undefined
             });
             if (response.data.success) setUsers(response.data.data);
         } catch {
@@ -36,8 +39,11 @@ export default function UserManagementPage() {
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, [filterRole]);
+        const timer = setTimeout(() => {
+            fetchUsers();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [filterRole, searchQuery]);
 
     const handleCreate = () => {
         setEditingUser(null);
@@ -63,18 +69,23 @@ export default function UserManagementPage() {
     };
 
     const onSubmit = async (data: Partial<User>) => {
+        setIsSubmitting(true);
         try {
             if (editingUser) {
                 await adminApi.updateUser(editingUser.id, data);
-                toast.success('User updated');
+                toast.success('User updated successfully');
             } else {
                 await adminApi.createUser(data);
-                toast.success('User created');
+                toast.success('User registered successfully');
             }
             setIsModalOpen(false);
             fetchUsers();
-        } catch {
-            toast.error('Operation failed');
+            reset();
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Operation failed';
+            toast.error(msg);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -110,6 +121,8 @@ export default function UserManagementPage() {
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
                         <input
                             placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--gray-300)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-50 outline-none transition-all"
                         />
                     </div>
@@ -157,7 +170,7 @@ export default function UserManagementPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-[var(--gray-900)]">
-                                                        {user.first_name} {user.last_name || ''}
+                                                        {user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'No Name'}
                                                     </p>
                                                     <p className="text-xs text-[var(--gray-500)]">
                                                         {user.email}
@@ -219,7 +232,8 @@ export default function UserManagementPage() {
                                 { value: 'staff', label: 'Staff' },
                                 { value: 'admin', label: 'Administrator' },
                             ]}
-                            {...register('role')}
+                            {...register('role', { required: 'Role is required' })}
+                            error={errors.role?.message}
                         />
                         <Select
                             label="Account Status"
@@ -228,7 +242,8 @@ export default function UserManagementPage() {
                                 { value: 'inactive', label: 'Inactive' },
                                 { value: 'banned', label: 'Banned' },
                             ]}
-                            {...register('status')}
+                            {...register('status', { required: 'Status is required' })}
+                            error={errors.status?.message}
                         />
                     </div>
 
@@ -240,7 +255,7 @@ export default function UserManagementPage() {
                         <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button type="submit" isLoading={isSubmitting}>
                             {editingUser ? 'Update Profile' : 'Register User'}
                         </Button>
                     </div>

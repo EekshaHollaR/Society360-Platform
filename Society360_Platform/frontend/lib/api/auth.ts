@@ -60,6 +60,7 @@ export interface User {
     role: string;
     phone_number?: string;
     created_at?: string;
+    units?: { id: string; unit_number: string; block: string }[];
 }
 
 export interface AuthResponse {

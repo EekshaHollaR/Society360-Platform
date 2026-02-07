@@ -61,7 +61,7 @@ export default function MaintenancePage() {
                 toast.error(response.data.message || 'Failed to create ticket');
             }
         } catch (err: unknown) {
-            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string, string> } } };
             const message = errorObj.response?.data?.message || 'Failed to create ticket';
             const fieldErrors = errorObj.response?.data?.errors;
             if (fieldErrors) {
@@ -97,7 +97,7 @@ export default function MaintenancePage() {
 
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1,2,3,4].map((i) => (
+                    {[1, 2, 3, 4].map((i) => (
                         <Card key={i} className="p-6 animate-pulse">
                             <div className="flex justify-between items-start mb-3">
                                 <div className="h-5 bg-[var(--gray-200)] rounded w-28"></div>
@@ -165,6 +165,7 @@ export default function MaintenancePage() {
                                 { value: 'other', label: 'Other' },
                             ]}
                             {...register('category', { required: 'Category is required' })}
+                            error={errors.category?.message}
                         />
                         <Select
                             label="Priority"
@@ -175,6 +176,7 @@ export default function MaintenancePage() {
                                 { value: 'critical', label: 'Critical' },
                             ]}
                             {...register('priority', { required: 'Priority is required' })}
+                            error={errors.priority?.message}
                         />
                     </div>
                     <div className="space-y-1.5">

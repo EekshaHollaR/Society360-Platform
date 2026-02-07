@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "Comprehensive management solution for modern residential societies. Streamline visitors, finances, and communication.",
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased selection:bg-primary-light selection:text-white`}>
         {children}
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

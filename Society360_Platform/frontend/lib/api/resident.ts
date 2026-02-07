@@ -65,17 +65,18 @@ export const residentApi = {
             visitor_name: data.name,
             visitor_phone: data.phone_number,
             unit_id: (data as any).unit_id,
-            purpose: data.purpose
+            purpose: data.purpose,
+            visitor_type: data.visitor_type
         };
         return api.post('/visitors/pre-approve', mappedData);
     },
 
     checkInVisitor: async (id: string) => {
-        return api.post('/visitors/check-in', { visitorId: id });
+        return api.post('/visitors/check-in', { visitor_id: id });
     },
 
     checkOutVisitor: async (id: string) => {
-        return api.post('/visitors/check-out', { visitorId: id });
+        return api.post('/visitors/check-out', { visitor_id: id });
     },
 
     // Maintenance Tickets

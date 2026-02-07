@@ -4,7 +4,9 @@ export interface User {
     id: string;
     first_name: string;
     last_name: string;
+    full_name?: string;
     email: string;
+    password?: string;
     role: 'admin' | 'staff' | 'resident';
     status: 'active' | 'inactive' | 'banned';
     phone_number?: string;
@@ -47,11 +49,13 @@ export const adminApi = {
     },
 
     createUser: async (data: Partial<User>) => {
-        return api.post('/admin/users', data);
+        const full_name = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim();
+        return api.post('/admin/users', { ...data, full_name });
     },
 
     updateUser: async (id: string, data: Partial<User>) => {
-        return api.put(`/admin/users/${id}`, data);
+        const full_name = data.full_name || (data.first_name && data.last_name ? `${data.first_name} ${data.last_name}` : undefined);
+        return api.put(`/admin/users/${id}`, { ...data, full_name });
     },
 
     deleteUser: async (id: string) => {

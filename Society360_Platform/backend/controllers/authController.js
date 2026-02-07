@@ -37,6 +37,9 @@ const registerUser = async (req, res) => {
         });
 
         if (newUser) {
+            // Fetch units for the new user
+            const units = await Unit.findUnitsByUser(newUser.id);
+
             // Log audit
             await logAudit(newUser.id, AUDIT_ACTIONS.USER_CREATED, 'users', newUser.id, { email: newUser.email }, req);
 
@@ -46,10 +49,13 @@ const registerUser = async (req, res) => {
                 user: {
                     id: newUser.id,
                     full_name: newUser.full_name,
+                    first_name: newUser.first_name,
+                    last_name: newUser.last_name,
                     email: newUser.email,
                     role: newUser.role,
                     phone_number: newUser.phone_number,
-                    created_at: newUser.created_at
+                    created_at: newUser.created_at,
+                    units
                 },
                 message: 'Registration successful'
             });
@@ -80,6 +86,9 @@ const loginUser = async (req, res) => {
         if (user && (await comparePassword(password, user.password_hash))) {
             const token = generateToken(user.id, user.role);
 
+            // Fetch units for the user
+            const units = await Unit.findUnitsByUser(user.id);
+
             // Log audit
             await logAudit(user.id, AUDIT_ACTIONS.USER_LOGIN, 'users', user.id, { email: user.email }, req);
 
@@ -89,10 +98,13 @@ const loginUser = async (req, res) => {
                 user: {
                     id: user.id,
                     full_name: user.full_name,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
                     email: user.email,
                     role: user.role,
                     phone_number: user.phone_number,
-                    created_at: user.created_at
+                    created_at: user.created_at,
+                    units
                 },
                 message: 'Login successful'
             });
