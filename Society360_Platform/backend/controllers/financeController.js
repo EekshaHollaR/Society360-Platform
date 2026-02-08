@@ -4,13 +4,13 @@ const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 exports.generateMonthlyBills = async (req, res) => {
     try {
-        // For demonstration, we'll manually create a bill for a specific unit passed in body
-        // In a real scheduler, this would iterate all units.
-        const { unit_id, bill_type, amount, description } = req.body;
+        const { unit_id, bill_type, amount, description, bill_date, due_date } = req.body;
 
-        const billDate = new Date();
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 15); // Due in 15 days
+        const billDate = bill_date ? new Date(bill_date) : new Date();
+        const dueDate = due_date ? new Date(due_date) : new Date();
+        if (!due_date) {
+            dueDate.setDate(dueDate.getDate() + 15); // Default 15 days
+        }
 
         const newBill = await Finance.createBill({
             unit_id,
@@ -37,41 +37,53 @@ exports.generateMonthlyBills = async (req, res) => {
 
 exports.getBills = async (req, res) => {
     try {
+        let bills = [];
         if (req.user.role === 'admin' || req.user.role === 'staff') {
-            // Admin/Staff can see all or filter by unit
             if (req.query.unit_id) {
-                const bills = await Finance.getBillsByUnit(req.query.unit_id);
-                return res.json({
-                    success: true,
-                    data: bills
-                });
+                bills = await Finance.getBillsByUnit(req.query.unit_id);
+            } else {
+                bills = await Finance.getAllBills();
             }
-            const bills = await Finance.getAllBills();
-            return res.json({
-                success: true,
-                data: bills
-            });
         } else {
-            // Residents see their own unit's bills
-            // Assumes middleware has populated req.user and we can find their unit.
-            // For MVP simplicity, we might require them to pass unit_id and we verify ownership,
-            // OR we lookup their unit. Let's assume passed unit_id for now and we verify access in a real app,
-            // but here we'll just return bills for the requested unit if they are authorized.
-            // Re-using the same logic for simplicity + security check that usually happens in middleware.
-            // However, to be safe, let's fetch bills for the unit_id provided in query (Resident frontend sends it).
-            // A robust check would verify req.user.id owns req.query.unit_id.
-
-            if (!req.query.unit_id) {
-                return res.status(400).json({ success: false, message: 'Unit ID required' });
+            let unitId = req.query.unit_id;
+            if (!unitId) {
+                const userUnits = await Unit.findUnitsByUser(req.user.id);
+                if (userUnits && userUnits.length > 0) {
+                    unitId = userUnits[0].id;
+                }
             }
-            // TODO: Verify req.user is associated with req.query.unit_id
 
-            const bills = await Finance.getBillsByUnit(req.query.unit_id);
-            res.json({
-                success: true,
-                data: bills
-            });
+            if (!unitId) {
+                // Return empty if no unit assigned
+                return res.json({ success: true, data: [] });
+            }
+
+            bills = await Finance.getBillsByUnit(unitId);
         }
+
+        // Add overdue logic
+        const now = new Date();
+        const billsWithStatus = bills.map(bill => {
+            const dueDate = new Date(bill.due_date);
+            // If unpaid and past due date
+            if (bill.status === 'unpaid' && dueDate < now) {
+                const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+                // Add fine? For now just mark as overdue in response, DB remains 'unpaid' unless we run a cron
+                // But for UI "red" badge, this is enough
+                return {
+                    ...bill,
+                    status: 'overdue', // UI can use this
+                    days_overdue: daysOverdue,
+                    fine_amount: daysOverdue * 50 // Example: 50 currency units per day
+                };
+            }
+            return bill;
+        });
+
+        res.json({
+            success: true,
+            data: billsWithStatus
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server Error fetching bills' });

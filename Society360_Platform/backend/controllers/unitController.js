@@ -13,9 +13,26 @@ const UnitController = {
             const { page, limit, block_id, status, type } = req.query;
             const result = await Unit.getAllWithFilters({ page, limit, block_id, status, type });
 
+            // Define Rate Card
+            const RATES = {
+                '1BHK': { maintenance: 1500, rent: 12000 },
+                '2BHK': { maintenance: 2500, rent: 20000 },
+                '3BHK': { maintenance: 3500, rent: 30000 },
+                'Villa': { maintenance: 5000, rent: 50000 }
+            };
+
+            const unitsWithRates = result.units.map(unit => {
+                const rates = RATES[unit.type] || { maintenance: 2000, rent: 15000 };
+                return {
+                    ...unit,
+                    suggested_maintenance: unit.maintenance_amount > 0 ? unit.maintenance_amount : rates.maintenance,
+                    suggested_rent: unit.rent_amount > 0 ? unit.rent_amount : rates.rent
+                };
+            });
+
             res.status(200).json({
                 success: true,
-                data: result.units,
+                data: unitsWithRates, // Return modified data
                 pagination: result.pagination
             });
         } catch (error) {
@@ -50,7 +67,7 @@ const UnitController = {
      */
     createUnit: async (req, res) => {
         try {
-            const { block_id, unit_number, floor_number, type, status } = req.body;
+            const { block_id, unit_number, floor_number, type, status, maintenance_amount, rent_amount } = req.body;
 
             if (!block_id || !unit_number || !floor_number || !type) {
                 return res.status(400).json({
@@ -59,7 +76,7 @@ const UnitController = {
                 });
             }
 
-            const newUnit = await Unit.create({ block_id, unit_number, floor_number, type, status });
+            const newUnit = await Unit.create({ block_id, unit_number, floor_number, type, status, maintenance_amount, rent_amount });
 
             // Log audit
             await logAudit(req.user.id, AUDIT_ACTIONS.UNIT_CREATED, 'units', newUnit.id, { unit: newUnit }, req);
@@ -85,9 +102,9 @@ const UnitController = {
     updateUnit: async (req, res) => {
         try {
             const { id } = req.params;
-            const { unit_number, floor_number, type, status } = req.body;
+            const { unit_number, floor_number, type, status, maintenance_amount, rent_amount } = req.body;
 
-            const updatedUnit = await Unit.update(id, { unit_number, floor_number, type, status });
+            const updatedUnit = await Unit.update(id, { unit_number, floor_number, type, status, maintenance_amount, rent_amount });
 
             if (!updatedUnit) {
                 return res.status(404).json({ success: false, message: 'Unit not found' });
@@ -252,11 +269,25 @@ const UnitController = {
                 });
             }
 
+            const unit = await Unit.findById(id);
+            if (!unit) {
+                return res.status(404).json({ success: false, message: 'Unit not found' });
+            }
+
+            if (unit.status === 'under_maintenance') {
+                return res.status(400).json({ success: false, message: 'Unit is under maintenance and cannot be assigned' });
+            }
+
             if (!['owner', 'tenant', 'family_member'].includes(resident_type)) {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid resident_type. Must be: owner, tenant, or family_member'
                 });
+            }
+
+            // If this is a new owner or tenant, deallocate previous residents as per requirements
+            if (['owner', 'tenant'].includes(resident_type)) {
+                await Unit.deallocateUnit(id);
             }
 
             const assignment = await Unit.assignResident({
