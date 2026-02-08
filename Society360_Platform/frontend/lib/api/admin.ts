@@ -70,12 +70,30 @@ export const adminApi = {
         return api.patch(`/admin/users/${id}/role`, { role });
     },
 
+    // Audit Logs
+    getAuditLogs: async (params?: any) => {
+        return api.get('/admin/audit-logs', { params });
+    },
+
+    // Announcements
+    getAnnouncements: async () => {
+        return api.get('/communication/announcements');
+    },
+
+    createAnnouncement: async (data: { title: string; content: string; target_audience?: string; is_important?: boolean }) => {
+        return api.post('/communication/announcements', data);
+    },
+
+    deleteAnnouncement: async (id: string) => {
+        return api.delete(`/communication/announcements/${id}`);
+    },
+
     // Finance
     getFinanceStats: async () => {
         return api.get('/admin/reports/finance');
     },
 
-    generateBills: async (data: { period_start: string; period_end: string }) => {
+    generateBills: async (data: any) => {
         return api.post('/finance/generate', data);
     },
 
@@ -119,9 +137,4 @@ export const adminApi = {
     createBlock: async (data: any) => {
         return api.post('/admin/blocks', data);
     },
-
-    // Audit Logs
-    getAuditLogs: async (params?: any) => {
-        return api.get('/admin/audit-logs', { params });
-    }
 };

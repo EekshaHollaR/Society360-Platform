@@ -5,7 +5,7 @@ export interface Visitor {
     id?: string;
     name?: string;
     phone_number?: string;
-    visitor_type?: 'guest' | 'delivery' | 'service';
+    visitor_type?: 'guest' | 'delivery' | 'service' | 'other';
     expected_arrival?: string;
     status?: 'pending' | 'approved' | 'denied' | 'checked_in' | 'checked_out';
     purpose?: string;
@@ -16,6 +16,7 @@ export interface Visitor {
     visitor_name?: string;
     visitor_phone?: string;
     unit_id?: string;
+    vehicle_number?: string;
 }
 
 export interface Ticket {
@@ -66,7 +67,9 @@ export const residentApi = {
             visitor_phone: data.phone_number,
             unit_id: (data as any).unit_id,
             purpose: data.purpose,
-            visitor_type: data.visitor_type
+            visitor_type: data.visitor_type,
+            expected_arrival: data.expected_arrival,
+            vehicle_number: (data as any).vehicle_number
         };
         return api.post('/visitors/pre-approve', mappedData);
     },
@@ -89,12 +92,12 @@ export const residentApi = {
     },
 
     // Finance/Bills
-    getBills: async () => {
-        return api.get('/finance');
+    getBills: async (unitId?: string) => {
+        return api.get(`/finance${unitId ? `?unit_id=${unitId}` : ''}`);
     },
 
-    payBill: async (billId: string, paymentMethod: string) => {
-        return api.post('/finance/pay', { billId, paymentMethod });
+    payBill: async (billId: string, amount: number, paymentMethod: string) => {
+        return api.post('/finance/pay', { bill_id: billId, amount, payment_method: paymentMethod });
     },
 
     getReceipt: async (paymentId: string) => {
