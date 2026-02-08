@@ -2,13 +2,13 @@ const db = require('../config/db');
 
 const Unit = {
     create: async (unit) => {
-        const { block_id, unit_number, floor_number, type, status } = unit;
+        const { block_id, unit_number, floor_number, type, status, maintenance_amount, rent_amount } = unit;
         const query = `
-            INSERT INTO units (block_id, unit_number, floor_number, type, status)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO units (block_id, unit_number, floor_number, type, status, maintenance_amount, rent_amount)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
-        const values = [block_id, unit_number, floor_number, type, status || 'vacant'];
+        const values = [block_id, unit_number, floor_number, type, status || 'vacant', maintenance_amount || 0, rent_amount || 0];
         const result = await db.query(query, values);
         return result.rows[0];
     },
@@ -48,17 +48,19 @@ const Unit = {
      * Update unit details
      */
     update: async (id, unitData) => {
-        const { unit_number, floor_number, type, status } = unitData;
+        const { unit_number, floor_number, type, status, maintenance_amount, rent_amount } = unitData;
         const query = `
             UPDATE units
             SET unit_number = COALESCE($1, unit_number),
                 floor_number = COALESCE($2, floor_number),
                 type = COALESCE($3, type),
-                status = COALESCE($4, status)
-            WHERE id = $5
+                status = COALESCE($4, status),
+                maintenance_amount = COALESCE($5, maintenance_amount),
+                rent_amount = COALESCE($6, rent_amount)
+            WHERE id = $7
             RETURNING *;
         `;
-        const values = [unit_number, floor_number, type, status, id];
+        const values = [unit_number, floor_number, type, status, maintenance_amount, rent_amount, id];
         const result = await db.query(query, values);
         return result.rows[0];
     },
@@ -122,29 +124,28 @@ const Unit = {
             paramCount++;
         }
 
+        // Clone values for count query before adding limit/offset
+        const countValues = [...values];
+
         query += ` ORDER BY u.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
         values.push(limit, offset);
 
         const result = await db.query(query, values);
 
-        // Get total count
-        let countQuery = 'SELECT COUNT(*) FROM units WHERE 1=1';
-        const countValues = [];
+        // Get total count with same filters
+        let countQuery = 'SELECT COUNT(*) FROM units u WHERE 1=1';
         let countParamCount = 1;
 
         if (block_id) {
-            countQuery += ` AND block_id = $${countParamCount}`;
-            countValues.push(block_id);
+            countQuery += ` AND u.block_id = $${countParamCount}`;
             countParamCount++;
         }
         if (status) {
-            countQuery += ` AND status = $${countParamCount}`;
-            countValues.push(status);
+            countQuery += ` AND u.status = $${countParamCount}`;
             countParamCount++;
         }
         if (type) {
-            countQuery += ` AND type = $${countParamCount}`;
-            countValues.push(type);
+            countQuery += ` AND u.type = $${countParamCount}`;
         }
 
         const countResult = await db.query(countQuery, countValues);
@@ -218,6 +219,8 @@ const Unit = {
      */
     assignResident: async (assignmentData) => {
         const { user_id, unit_id, resident_type, is_primary_contact, move_in_date } = assignmentData;
+
+        // Start a transaction would be better, but for now we'll do sequential calls
         const query = `
             INSERT INTO user_units (user_id, unit_id, resident_type, is_primary_contact, move_in_date, status)
             VALUES ($1, $2, $3, $4, $5, 'active')
@@ -225,6 +228,10 @@ const Unit = {
         `;
         const values = [user_id, unit_id, resident_type, is_primary_contact || false, move_in_date || new Date()];
         const result = await db.query(query, values);
+
+        // Also update the unit status to occupied
+        await db.query('UPDATE units SET status = \'occupied\' WHERE id = $1', [unit_id]);
+
         return result.rows[0];
     },
 
@@ -239,7 +246,33 @@ const Unit = {
             RETURNING *;
         `;
         const result = await db.query(query, [unit_id, user_id]);
+
+        // Check if any active residents left
+        const checkQuery = 'SELECT COUNT(*) FROM user_units WHERE unit_id = $1 AND status = \'active\'';
+        const checkResult = await db.query(checkQuery, [unit_id]);
+        if (parseInt(checkResult.rows[0].count) === 0) {
+            await db.query('UPDATE units SET status = \'vacant\' WHERE id = $1', [unit_id]);
+        }
+
         return result.rows[0];
+    },
+
+    /**
+     * Deallocate all residents from a unit
+     */
+    deallocateUnit: async (unit_id) => {
+        const query = `
+            UPDATE user_units
+            SET status = 'moved_out', move_out_date = CURRENT_TIMESTAMP
+            WHERE unit_id = $1 AND status = 'active'
+            RETURNING *;
+        `;
+        const result = await db.query(query, [unit_id]);
+
+        // Update unit status to vacant
+        await db.query('UPDATE units SET status = \'vacant\' WHERE id = $1', [unit_id]);
+
+        return result.rows;
     }
 
 };

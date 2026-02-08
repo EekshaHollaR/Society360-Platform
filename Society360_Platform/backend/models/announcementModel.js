@@ -15,7 +15,7 @@ const Announcement = {
 
     getAll: async () => {
         const query = `
-      SELECT a.*, u.first_name, u.last_name 
+      SELECT a.*, u.full_name 
       FROM announcements a
       LEFT JOIN users u ON a.author_id = u.id
       ORDER BY a.created_at DESC;

@@ -128,7 +128,7 @@ const ReportModel = {
                 p.payment_date as date,
                 p.status
             FROM payments p
-            JOIN users u ON p.user_id = u.id
+            JOIN users u ON p.payer_id = u.id
             ORDER BY p.payment_date DESC
             LIMIT 10
         `;
