@@ -63,8 +63,8 @@ export default function StaffMaintenancePage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-[var(--gray-900)]">Assigned Tasks</h1>
-                <p className="text-[var(--gray-500)]">Manage and resolve maintenance requests.</p>
+                <h1 className="text-2xl font-bold text-[var(--gray-900)]">Maintenance Tasks</h1>
+                <p className="text-[var(--gray-500)]">View and manage maintenance requests.</p>
             </div>
 
             {isLoading ? (
@@ -84,8 +84,8 @@ export default function StaffMaintenancePage() {
             ) : tasks.length === 0 ? (
                 <Card className="p-12 text-center text-gray-500">
                     <FiTool size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium">No tasks assigned to you.</p>
-                    <p className="text-sm">New requests will appear here once assigned.</p>
+                    <p className="text-lg font-medium">No maintenance tasks found.</p>
+                    <p className="text-sm">Requests will appear here.</p>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-900">

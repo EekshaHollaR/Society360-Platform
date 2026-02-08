@@ -11,9 +11,10 @@ interface Announcement {
     id: string;
     title: string;
     content: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-    category: string;
+    is_important: boolean;
+    target_audience: string;
     created_at: string;
+    full_name?: string;
 }
 
 export default function StaffAnnouncementsPage() {
@@ -36,15 +37,6 @@ export default function StaffAnnouncementsPage() {
     useEffect(() => {
         fetchAnnouncements();
     }, []);
-
-    const getPriorityIcon = (priority: string) => {
-        switch (priority) {
-            case 'critical': return <FiAlertTriangle className="text-red-500" />;
-            case 'high': return <FiAlertTriangle className="text-orange-500" />;
-            case 'medium': return <FiInfo className="text-blue-500" />;
-            default: return <FiInfo className="text-gray-400" />;
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -74,25 +66,25 @@ export default function StaffAnnouncementsPage() {
                         <Card key={announcement.id} className="p-6 text-gray-900">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-gray-100 rounded-lg">
-                                        {getPriorityIcon(announcement.priority)}
+                                    <div className={`p-2 rounded-lg ${announcement.is_important ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                                        {announcement.is_important ? <FiAlertTriangle /> : <FiInfo />}
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-bold">{announcement.title}</h3>
                                         <p className="text-xs text-gray-400">
-                                            {new Date(announcement.created_at).toLocaleString()}
+                                            {new Date(announcement.created_at).toLocaleString()} • Posted by {announcement.full_name || 'Admin'}
                                         </p>
                                     </div>
                                 </div>
-                                <Badge variant={announcement.priority === 'critical' ? 'error' : announcement.priority === 'high' ? 'warning' : 'info'}>
-                                    {announcement.priority.toUpperCase()}
-                                </Badge>
+                                {announcement.is_important && (
+                                    <Badge variant="error">IMPORTANT</Badge>
+                                )}
                             </div>
 
                             <p className="text-gray-600 mb-4 whitespace-pre-wrap">{announcement.content}</p>
 
                             <div className="flex items-center gap-2 text-xs text-gray-400 border-t border-gray-50 pt-4">
-                                <span className="capitalize px-2 py-0.5 bg-gray-100 rounded">{announcement.category}</span>
+                                <span className="capitalize px-2 py-0.5 bg-gray-100 rounded">Audience: {announcement.target_audience}</span>
                             </div>
                         </Card>
                     ))}
