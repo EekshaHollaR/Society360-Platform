@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiGrid } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +20,8 @@ interface Unit {
     status: 'vacant' | 'occupied' | 'maintenance' | 'reserved';
     block_id: string;
     block_name?: string;
+    maintenance_amount?: number;
+    rent_amount?: number;
 }
 
 interface Block {
@@ -37,6 +39,7 @@ export default function UnitManagementPage() {
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
     const [residents, setResidents] = useState<any[]>([]);
     const [filterBlock, setFilterBlock] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } =
         useForm<Partial<Unit>>();
@@ -44,7 +47,6 @@ export default function UnitManagementPage() {
     const { register: registerAssign, handleSubmit: handleSubmitAssign, reset: resetAssign, formState: { errors: assignErrors, isSubmitting: isAssigning } } =
         useForm<{ user_id: string; resident_type: string }>();
 
-    const [searchQuery, setSearchQuery] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchData = async () => {
@@ -66,71 +68,7 @@ export default function UnitManagementPage() {
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const handleCreate = () => {
-        setEditingUnit(null);
-        reset({ status: 'vacant', type: '2BHK' });
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (unit: Unit) => {
-        setEditingUnit(unit);
-        Object.entries(unit).forEach(([k, v]) => setValue(k as any, v as any));
-        setIsModalOpen(true);
-    };
-
-    const handleAssign = (unit: Unit) => {
-        setSelectedUnit(unit);
-        resetAssign();
-        setIsAssignModalOpen(true);
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!confirm('Delete this unit?')) return;
-        try {
-            await adminApi.deleteUnit(id);
-            toast.success('Unit deleted');
-            fetchData();
-        } catch {
-            toast.error('Failed to delete unit');
-        }
-    };
-
-    const onSubmit = async (data: Partial<Unit>) => {
-        setIsSubmitting(true);
-        try {
-            if (editingUnit) {
-                await adminApi.updateUnit(editingUnit.id, data);
-                toast.success('Unit updated successfully');
-            } else {
-                await adminApi.createUnit(data);
-                toast.success('Unit created successfully');
-            }
-            setIsModalOpen(false);
-            fetchData();
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Operation failed');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const onAssignSubmit = async (data: any) => {
-        if (!selectedUnit) return;
-        try {
-            // Need to add assignResident to adminApi if not there
-            // Actually I'll use a direct api call or add it to adminApi
-            await (adminApi as any).assignResident(selectedUnit.id, data);
-            toast.success('Resident assigned successfully');
-            setIsAssignModalOpen(false);
-            fetchData();
-        } catch {
-            toast.error('Failed to assign resident');
-        }
-    };
+    useEffect(() => { fetchData(); }, []);
 
     const statusBadge = (status: string) => {
         switch (status) {
@@ -142,20 +80,55 @@ export default function UnitManagementPage() {
         }
     };
 
-    const filteredUnits = units.filter(u => {
-        const matchesBlock = filterBlock === 'all' || u.block_id === filterBlock;
-        const matchesSearch = u.unit_number.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesBlock && matchesSearch;
-    });
+    const handleCreate = () => {
+        setEditingUnit(null);
+        reset({});
+        setIsModalOpen(true);
+    };
+
+    const handleEdit = (unit: Unit) => {
+        setEditingUnit(unit);
+        setValue('block_id', unit.block_id);
+        setValue('unit_number', unit.unit_number);
+        setValue('floor_number', unit.floor_number);
+        setValue('type', unit.type);
+        setValue('status', unit.status);
+        setValue('maintenance_amount', unit.maintenance_amount);
+        setValue('rent_amount', unit.rent_amount);
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (id: string, unitNumber: string) => {
+        if (!confirm(`Are you sure you want to delete unit ${unitNumber}?`)) return;
+        try {
+            await adminApi.deleteUnit(id);
+            toast.success('Unit deleted');
+            fetchData();
+        } catch (error) {
+            toast.error('Failed to delete unit');
+        }
+    };
+
+    const handleAssign = (unit: Unit) => {
+        setSelectedUnit(unit);
+        setIsAssignModalOpen(true);
+    };
+
+    const filteredUnits = units.filter(u =>
+        (filterBlock === 'all' || u.block_id === filterBlock) &&
+        u.unit_number.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-10 text-white">
+
+            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--gray-900)]">
+                    <h1 className="text-3xl font-semibold tracking-tight">
                         Unit Management
                     </h1>
-                    <p className="text-[var(--gray-500)]">
+                    <p className="text-slate-400">
                         Manage society blocks and individual units.
                     </p>
                 </div>
@@ -165,22 +138,37 @@ export default function UnitManagementPage() {
                 </Button>
             </div>
 
-            <Card className="p-4">
+            {/* Filters */}
+            <Card className="p-5">
                 <div className="flex flex-col sm:flex-row gap-4 items-center">
                     <div className="relative flex-1 max-w-sm">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)]" />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             placeholder="Search by unit number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--gray-300)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-50 outline-none transition-all text-gray-900"
+                            className="
+                                w-full pl-10 pr-4 py-3 rounded-xl
+                                bg-[#0b1220]/40 backdrop-blur-md
+                                border border-white/10
+                                text-white placeholder:text-slate-400
+                                focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50
+                                outline-none transition-all
+                            "
                         />
                     </div>
 
                     <select
                         value={filterBlock}
                         onChange={e => setFilterBlock(e.target.value)}
-                        className="px-4 py-2 rounded-lg border border-[var(--gray-300)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)] focus:ring-opacity-50 outline-none transition-all text-gray-900"
+                        className="
+                            px-4 py-3 rounded-xl
+                            bg-[#0b1220]/40 backdrop-blur-md
+                            border border-white/10
+                            text-white
+                            focus:ring-2 focus:ring-indigo-500/50
+                            outline-none transition-all
+                        "
                     >
                         <option value="all">All Blocks</option>
                         {blocks.map(block => (
@@ -190,42 +178,37 @@ export default function UnitManagementPage() {
                 </div>
             </Card>
 
-            <Card className="overflow-hidden text-gray-900">
+            {/* Table */}
+            <Card className="overflow-hidden">
                 {isLoading ? (
-                    <div className="py-16 flex justify-center">
-                        <div className="animate-spin h-8 w-8 border-b-2 border-[var(--primary)] rounded-full" />
+                    <div className="py-20 flex justify-center">
+                        <div className="animate-spin h-8 w-8 border-b-2 border-indigo-500 rounded-full" />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-[var(--gray-50)] border-b border-[var(--gray-200)]">
-                                <tr className="text-[var(--gray-500)]">
-                                    <th className="py-4 px-6 text-left font-semibold">Unit No.</th>
-                                    <th className="py-4 px-6 text-left font-semibold">Block</th>
-                                    <th className="py-4 px-6 text-left font-semibold">Type</th>
-                                    <th className="py-4 px-6 text-left font-semibold">Floor</th>
-                                    <th className="py-4 px-6 text-left font-semibold">Status</th>
-                                    <th className="py-4 px-6 text-right font-semibold">Actions</th>
+                            <thead className="border-b border-white/10 text-slate-400">
+                                <tr>
+                                    {['Unit', 'Block', 'Type', 'Floor', 'Status', 'Actions'].map(h => (
+                                        <th key={h} className="py-4 px-6 text-left font-medium">{h}</th>
+                                    ))}
                                 </tr>
                             </thead>
-
-                            <tbody className="divide-y divide-[var(--gray-100)]">
+                            <tbody className="divide-y divide-white/5">
                                 {filteredUnits.map(unit => (
-                                    <tr key={unit.id} className="hover:bg-[var(--gray-50)] transition-colors">
+                                    <tr key={unit.id} className="hover:bg-white/5 transition-colors">
                                         <td className="py-4 px-6 font-medium">{unit.unit_number}</td>
                                         <td className="px-6">{unit.block_name || '—'}</td>
                                         <td className="px-6">{unit.type}</td>
                                         <td className="px-6">{unit.floor_number}</td>
                                         <td className="px-6">{statusBadge(unit.status)}</td>
                                         <td className="px-6 text-right">
-                                            <div className="flex justify-end gap-1">
-                                                <Button variant="ghost" size="sm" onClick={() => handleAssign(unit)}>
-                                                    Assign
-                                                </Button>
-                                                <Button variant="ghost" size="sm" onClick={() => handleEdit(unit)} className="text-[var(--primary)]">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="sm" onClick={() => handleAssign(unit)}>Assign</Button>
+                                                <Button variant="ghost" size="sm" className="text-indigo-400" onClick={() => handleEdit(unit)}>
                                                     <FiEdit2 size={16} />
                                                 </Button>
-                                                <Button variant="ghost" size="sm" onClick={() => handleDelete(unit.id)} className="text-red-600">
+                                                <Button variant="ghost" size="sm" className="text-red-400" onClick={() => handleDelete(unit.id, unit.unit_number)}>
                                                     <FiTrash2 size={16} />
                                                 </Button>
                                             </div>
@@ -238,91 +221,143 @@ export default function UnitManagementPage() {
                 )}
             </Card>
 
+            {/* Create/Edit Unit Modal */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={editingUnit ? 'Edit Unit' : 'Add New Unit'}
             >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={handleSubmit(async (data) => {
+                    setIsSubmitting(true);
+                    try {
+                        if (editingUnit) {
+                            await adminApi.updateUnit(editingUnit.id, data);
+                            toast.success('Unit updated');
+                        } else {
+                            await adminApi.createUnit(data);
+                            toast.success('Unit created');
+                        }
+                        setIsModalOpen(false);
+                        fetchData();
+                        reset();
+                    } catch (err: any) {
+                        toast.error(err.response?.data?.message || 'Operation failed');
+                    } finally {
+                        setIsSubmitting(false);
+                    }
+                })} className="space-y-4">
+
+                    <Select
+                        label="Block"
+                        options={blocks.map(b => ({ value: b.id, label: b.name }))}
+                        {...register('block_id', { required: 'Block is required' })}
+                        error={errors.block_id?.message as string}
+                    />
+
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Unit Number" placeholder="e.g. 101" {...register('unit_number', { required: 'Unit number is required' })} error={errors.unit_number?.message} />
-                        <Input label="Floor Number" type="number" placeholder="e.g. 1" {...register('floor_number', { required: 'Floor is required' })} error={errors.floor_number?.message} />
+                        <Input
+                            label="Unit Number"
+                            placeholder="e.g. 101"
+                            {...register('unit_number', { required: 'Required' })}
+                            error={errors.unit_number?.message as string}
+                        />
+                        <Input
+                            label="Floor Number"
+                            type="number"
+                            placeholder="e.g. 1"
+                            {...register('floor_number', { required: 'Required' })}
+                            error={errors.floor_number?.message as string}
+                        />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Select
-                            label="Block"
-                            options={blocks.map(b => ({ value: b.id, label: b.name }))}
-                            {...register('block_id', { required: 'Block is required' })}
-                            error={errors.block_id?.message}
-                        />
-                        <Select
-                            label="Unit Type"
+                            label="Type"
                             options={[
                                 { value: '1BHK', label: '1 BHK' },
                                 { value: '2BHK', label: '2 BHK' },
                                 { value: '3BHK', label: '3 BHK' },
-                                { value: '4BHK', label: '4 BHK' },
-                                { value: 'Penthouse', label: 'Penthouse' },
+                                { value: 'Villa', label: 'Villa' },
                             ]}
-                            {...register('type', { required: 'Unit type is required' })}
-                            error={errors.type?.message}
+                            {...register('type', { required: 'Required' })}
+                        />
+                        <Select
+                            label="Status"
+                            options={[
+                                { value: 'vacant', label: 'Vacant' },
+                                { value: 'occupied', label: 'Occupied' },
+                                { value: 'maintenance', label: 'Under Maintenance' },
+                            ]}
+                            {...register('status')}
                         />
                     </div>
 
-                    <Select
-                        label="Status"
-                        options={[
-                            { value: 'vacant', label: 'Vacant' },
-                            { value: 'occupied', label: 'Occupied' },
-                            { value: 'maintenance', label: 'Maintenance' },
-                            { value: 'reserved', label: 'Reserved' },
-                        ]}
-                        {...register('status', { required: 'Status is required' })}
-                        error={errors.status?.message}
-                    />
+                    <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4 mt-4">
+                        <Input
+                            label="Maintenance Amount"
+                            type="number"
+                            placeholder="Override Default"
+                            {...register('maintenance_amount')}
+                        />
+                        <Input
+                            label="Rent Amount"
+                            type="number"
+                            placeholder="Override Default"
+                            {...register('rent_amount')}
+                        />
+                    </div>
 
-                    <div className="flex justify-end gap-3 pt-6 border-t border-[var(--gray-100)] mt-6">
-                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" isLoading={isSubmitting}>
-                            {editingUnit ? 'Update Unit' : 'Add Unit'}
-                        </Button>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                        <Button type="submit" isLoading={isSubmitting}>{editingUnit ? 'Update' : 'Create'}</Button>
                     </div>
                 </form>
             </Modal>
 
             {/* Assign Resident Modal */}
-            <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title={`Assign Resident to Unit ${selectedUnit?.unit_number}`}>
-                <form onSubmit={handleSubmitAssign(onAssignSubmit)} className="space-y-4">
-                    <div className="space-y-4">
-                        <Select
-                            label="Select Resident"
-                            options={residents.map(r => ({ value: r.id, label: `${r.full_name || r.first_name + ' ' + r.last_name} (${r.email})` }))}
-                            {...registerAssign('user_id', { required: 'Please select a resident' })}
-                            error={assignErrors.user_id?.message}
-                        />
+            <Modal
+                isOpen={isAssignModalOpen}
+                onClose={() => setIsAssignModalOpen(false)}
+                title={`Assign Resident to Unit ${selectedUnit?.unit_number}`}
+            >
+                <form onSubmit={handleSubmitAssign(async (data) => {
+                    if (!selectedUnit) return;
+                    try {
+                        await adminApi.assignResident(selectedUnit.id, data);
+                        toast.success('Resident assigned successfully');
+                        setIsAssignModalOpen(false);
+                        fetchData();
+                        resetAssign();
+                    } catch (err: any) {
+                        toast.error(err.response?.data?.message || 'Assignment failed');
+                    }
+                })} className="space-y-4">
 
-                        <Select
-                            label="Resident Type"
-                            options={[
-                                { value: 'owner', label: 'Owner' },
-                                { value: 'tenant', label: 'Tenant' },
-                                { value: 'family_member', label: 'Family Member' },
-                                { value: 'other', label: 'Other' },
-                            ]}
-                            {...registerAssign('resident_type', { required: 'Please select resident type' })}
-                            error={assignErrors.resident_type?.message}
-                        />
-                    </div>
+                    <Select
+                        label="Select Resident"
+                        options={residents.map(r => ({ value: r.id, label: `${r.full_name} (${r.email})` }))}
+                        {...registerAssign('user_id', { required: 'Resident is required' })}
+                        error={assignErrors.user_id?.message}
+                    />
 
-                    <div className="pt-4 flex justify-end gap-3">
+                    <Select
+                        label="Resident Type"
+                        options={[
+                            { value: 'owner', label: 'Owner' },
+                            { value: 'tenant', label: 'Tenant' },
+                            { value: 'family_member', label: 'Family Member' },
+                        ]}
+                        {...registerAssign('resident_type', { required: 'Type is required' })}
+                        error={assignErrors.resident_type?.message}
+                    />
+
+                    <div className="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="ghost" onClick={() => setIsAssignModalOpen(false)}>Cancel</Button>
                         <Button type="submit" isLoading={isAssigning}>Assign Resident</Button>
                     </div>
                 </form>
             </Modal>
+
         </div>
     );
 }
