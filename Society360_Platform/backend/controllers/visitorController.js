@@ -6,7 +6,7 @@ const VisitorController = {
     // Resident Action
     preApproveVisitor: async (req, res) => {
         try {
-            const { visitor_name, visitor_phone, purpose, unit_id } = req.body;
+            const { visitor_name, visitor_phone, purpose, unit_id, expected_arrival, visitor_type, vehicle_number } = req.body;
             const userId = req.user.id; // From authMiddleware
 
             // Verify if the user is associated with the unit
@@ -23,7 +23,10 @@ const VisitorController = {
                 visitor_phone,
                 purpose,
                 approved_by_user_id: userId,
-                status: 'approved'
+                status: 'approved',
+                expected_arrival,
+                visitor_type,
+                vehicle_number
             });
 
             // Log audit

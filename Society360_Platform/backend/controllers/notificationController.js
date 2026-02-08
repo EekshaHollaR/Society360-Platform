@@ -5,6 +5,7 @@ const Notification = require('../models/notificationModel');
 // @access  Private
 const getUserNotifications = async (req, res) => {
     try {
+        console.log(`Fetching notifications for user: ${req.user.id}`);
         const notifications = await Notification.getByUser(req.user.id);
         res.json({
             success: true,

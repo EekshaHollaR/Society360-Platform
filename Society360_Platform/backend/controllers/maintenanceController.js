@@ -120,17 +120,11 @@ const MaintenanceController = {
                     data: history
                 });
             } else if (role === 'staff') {
-                // Staff sees tickets assigned to them OR all? 
-                // Usually staff might need to see unassigned ones to pick them up?
-                // Prompt said "Assignment to staff", implying push model.
-                // Let's return assigned tickets + maybe open ones?
-                // For simplicity, let's return assigned ones.
-                // Or maybe all tickets so they can see what's happening?
-                // Let's stick to "Assigned to staff" as per prompt "Assignment to staff".
-                const assigned = await MaintenanceTicket.findByAssignedStaff(id);
+                // Staff should see all tickets to pick them up or manage them
+                const allTickets = await MaintenanceTicket.findAll();
                 return res.json({
                     success: true,
-                    data: assigned
+                    data: allTickets
                 });
             } else {
                 // Admin sees all

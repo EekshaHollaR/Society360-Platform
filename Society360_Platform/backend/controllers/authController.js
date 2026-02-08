@@ -123,9 +123,12 @@ const Unit = require('../models/unitModel');
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
+    console.log(`[getMe] Fetching profile for user: ${req.user?.id}`);
     if (req.user) {
         try {
             const units = await Unit.findUnitsByUser(req.user.id);
+            console.log(`[getMe] Found ${units?.length || 0} units for user`);
+
             const userResponse = {
                 success: true,
                 user: {
@@ -135,10 +138,11 @@ const getMe = async (req, res) => {
             };
             res.json(userResponse);
         } catch (error) {
-            console.error('Error fetching user units:', error);
+            console.error('[getMe] Error fetching user units:', error);
             res.status(500).json({ success: false, message: 'Server error fetching user details' });
         }
     } else {
+        console.warn('[getMe] No user found in request');
         res.status(404).json({ success: false, message: 'User not found' });
     }
 };
