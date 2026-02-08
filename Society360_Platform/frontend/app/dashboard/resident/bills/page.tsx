@@ -1,25 +1,45 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiDollarSign, FiClock, FiCheckCircle, FiDownload } from 'react-icons/fi';
+import { FiDollarSign, FiClock, FiCheckCircle, FiAlertTriangle, FiCreditCard } from 'react-icons/fi';
 import { toast } from 'sonner';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { residentApi, Bill } from '@/lib/api/resident';
+import { Modal } from '@/components/ui/Modal';
+import { Select } from '@/components/ui/Select';
+import { residentApi } from '@/lib/api/resident';
 
-export default function BillsPage() {
+interface Bill {
+    id: string;
+    unit_id: string;
+    bill_type: string; // 'maintenance' | 'utility' | 'rent' | 'other'
+    amount: number;
+    description: string;
+    bill_date: string;
+    due_date: string;
+    status: 'unpaid' | 'paid' | 'overdue' | 'partially_paid';
+    created_at: string;
+    days_overdue?: number;
+    fine_amount?: number;
+    updated_at?: string;
+}
+
+export default function ResidentBillsPage() {
     const [bills, setBills] = useState<Bill[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [payingId, setPayingId] = useState<string | null>(null);
+    const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState('credit_card');
+    const [isPaying, setIsPaying] = useState(false);
 
     const fetchBills = async () => {
+        setIsLoading(true);
         try {
             const response = await residentApi.getBills();
             if (response.data.success) {
                 setBills(response.data.data);
             }
-        } catch (error) {
+        } catch {
             toast.error('Failed to load bills');
         } finally {
             setIsLoading(false);
@@ -30,138 +50,205 @@ export default function BillsPage() {
         fetchBills();
     }, []);
 
-    const handlePay = async (id: string, amount: number) => {
-        setPayingId(id);
-        // Simulate payment processing
-        setTimeout(() => {
-            toast.success(`Payment of $${amount} successful`);
-            setBills(prev => prev.map(b => b.id === id ? { ...b, status: 'paid' } : b));
-            setPayingId(null);
-        }, 1500);
+    const handlePay = async () => {
+        if (!selectedBill) return;
+
+        setIsPaying(true);
+        try {
+            // Include fine in payment if overdue? For now, just amount.
+            // In a real app, fine logic would be handled by backend 'getPaymentDetails' endpoint
+            const amountToPay = selectedBill.amount;
+
+            await residentApi.payBill(selectedBill.id, amountToPay, paymentMethod);
+            toast.success('Payment successful');
+            setSelectedBill(null);
+            fetchBills();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Payment failed');
+        } finally {
+            setIsPaying(false);
+        }
     };
 
-    const outstandingBills = bills.filter(b => b.status !== 'paid');
-    const pastBills = bills.filter(b => b.status === 'paid');
-    const totalDue = outstandingBills.reduce((acc, curr) => acc + curr.amount, 0);
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'paid': return <Badge variant="success">Paid</Badge>;
+            case 'overdue': return <Badge variant="error">Overdue</Badge>;
+            case 'unpaid': return <Badge variant="warning">Pending</Badge>;
+            default: return <Badge variant="default">{status}</Badge>;
+        }
+    };
+
+    const pendingBills = bills.filter(b => ['unpaid', 'overdue', 'partially_paid'].includes(b.status));
+    const paidBills = bills.filter(b => b.status === 'paid');
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-[var(--gray-900)]">Bills & Payments</h1>
-                <p className="text-[var(--gray-500)]">Manage your monthly maintenance and other payments.</p>
+        <div className="space-y-8 text-white">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-semibold tracking-tight">Bills & Payments</h1>
+                    <p className="text-slate-400">View and pay your society dues.</p>
+                </div>
+
+                {/* Summary Card could go here */}
             </div>
 
-            {isLoading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+            {/* Pending Bills Section */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-medium flex items-center gap-2">
+                    <FiClock className="text-amber-400" /> Pending Dues
+                </h2>
+
+                {isLoading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+                    </div>
+                ) : pendingBills.length === 0 ? (
+                    <Card className="p-8 text-center bg-white/5 border-white/10">
+                        <FiCheckCircle size={40} className="mx-auto mb-3 text-emerald-500/50" />
+                        <p className="text-slate-400">You have no pending bills. Great job!</p>
+                    </Card>
+                ) : (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {pendingBills.map(bill => (
+                            <Card key={bill.id} className={`border-l-4 ${bill.status === 'overdue' ? 'border-l-red-500' : 'border-l-amber-500'}`}>
+                                <CardContent className="p-6 space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">{bill.bill_type}</p>
+                                            <h3 className="text-2xl font-bold mt-1">${bill.amount.toFixed(2)}</h3>
+                                        </div>
+                                        {getStatusBadge(bill.status)}
+                                    </div>
+
+                                    <div className="space-y-2 text-sm text-slate-300">
+                                        <div className="flex justify-between">
+                                            <span>Due Date:</span>
+                                            <span className={bill.status === 'overdue' ? 'text-red-400 font-medium' : ''}>
+                                                {new Date(bill.due_date).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Bill Date:</span>
+                                            <span>{new Date(bill.bill_date).toLocaleDateString()}</span>
+                                        </div>
+                                        {bill.days_overdue && (
+                                            <div className="flex justify-between text-red-400 font-medium">
+                                                <span>Overdue by:</span>
+                                                <span>{bill.days_overdue} days</span>
+                                            </div>
+                                        )}
+                                        {bill.description && (
+                                            <p className="text-slate-500 text-xs mt-2 border-t border-white/10 pt-2">{bill.description}</p>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        className="w-full"
+                                        variant={bill.status === 'overdue' ? 'danger' : 'primary'}
+                                        onClick={() => setSelectedBill(bill)}
+                                    >
+                                        Pay Now
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Payment History */}
+            <div className="space-y-4 pt-8 border-t border-white/10">
+                <h2 className="text-xl font-medium flex items-center gap-2">
+                    <FiDollarSign className="text-emerald-400" /> Payment History
+                </h2>
+
+                <div className="bg-[#0b1220]/60 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-white/5 text-slate-400 font-medium border-b border-white/10">
+                            <tr>
+                                <th className="px-6 py-4">Date</th>
+                                <th className="px-6 py-4">Description</th>
+                                <th className="px-6 py-4">Amount</th>
+                                <th className="px-6 py-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 text-slate-300">
+                            {paidBills.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500">No payment history available</td>
+                                </tr>
+                            ) : (
+                                paidBills.map(bill => (
+                                    <tr key={bill.id} className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4">{new Date(bill.updated_at || bill.created_at).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 capitalize">{bill.bill_type} - {bill.description || 'Bill Payment'}</td>
+                                        <td className="px-6 py-4 font-medium text-white">${bill.amount.toFixed(2)}</td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                <FiCheckCircle size={12} /> Paid
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            ) : (
-                <>
-                    {/* Summary Card */}
-                    <Card className="bg-gradient-to-r from-blue-600 to-blue-800 text-white border-none p-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div>
-                                <p className="text-blue-100 font-medium mb-1">Total Outstanding</p>
-                                <h2 className="text-4xl font-bold">${totalDue.toFixed(2)}</h2>
-                                <p className="text-sm text-blue-200 mt-2">
-                                    {outstandingBills.length} pending bill(s)
+            </div>
+
+            {/* Payment Modal */}
+            <Modal
+                isOpen={!!selectedBill}
+                onClose={() => setSelectedBill(null)}
+                title="Make Payment"
+            >
+                {selectedBill && (
+                    <div className="space-y-6">
+                        <div className="bg-indigo-500/10 rounded-lg p-4 border border-indigo-500/20 text-center">
+                            <p className="text-slate-400 text-sm mb-1">Total Amount Due</p>
+                            <p className="text-3xl font-bold text-white">${selectedBill.amount.toFixed(2)}</p>
+                            {selectedBill.days_overdue && (
+                                <p className="text-red-400 text-xs mt-2 flex items-center justify-center gap-1">
+                                    <FiAlertTriangle /> Includes overdue fines
                                 </p>
-                            </div>
-                            {outstandingBills.length > 0 && (
-                                <Button
-                                    variant="secondary"
-                                    size="lg"
-                                    className="shadow-lg"
-                                    onClick={() => outstandingBills[0] && handlePay(outstandingBills[0].id, outstandingBills[0].amount)}
-                                    isLoading={!!payingId}
-                                >
-                                    Pay All Now
-                                </Button>
                             )}
                         </div>
-                    </Card>
 
-                    {/* Pending Bills */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-[var(--gray-900)]">Pending Bills</h3>
-                        {outstandingBills.length === 0 ? (
-                            <p className="text-[var(--gray-500)] italic">No pending bills. You&apos;re all caught up!</p>
-                        ) : (
-                            outstandingBills.map((bill) => (
-                                <Card key={bill.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4 border-l-4 border-l-orange-400">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <h4 className="font-semibold text-lg text-[var(--gray-900)]">{bill.bill_type} Bill</h4>
-                                            <Badge variant="warning">Unpaid</Badge>
-                                        </div>
-                                        <p className="text-sm text-[var(--gray-500)]">
-                                            Period: {bill.period_start} to {bill.period_end}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-2 text-sm text-[var(--error)] font-medium">
-                                            <FiClock />
-                                            Due by {new Date(bill.due_date).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 w-full sm:w-auto">
-                                        <span className="text-xl font-bold text-[var(--gray-900)]">${bill.amount}</span>
-                                        <Button
-                                            onClick={() => handlePay(bill.id, bill.amount)}
-                                            isLoading={payingId === bill.id}
-                                            disabled={!!payingId}
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium text-slate-300">Select Payment Method</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {['Credit Card', 'Debit Card', 'UPI', 'Net Banking'].map((method) => {
+                                    const value = method.toLowerCase().replace(' ', '_');
+                                    const isSelected = paymentMethod === value;
+                                    return (
+                                        <button
+                                            key={value}
+                                            onClick={() => setPaymentMethod(value)}
+                                            className={`
+                                                flex flex-col items-center justify-center p-3 rounded-xl border transition-all
+                                                ${isSelected
+                                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                                                    : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20'}
+                                            `}
                                         >
-                                            Pay Now
-                                        </Button>
-                                    </div>
-                                </Card>
-                            ))
-                        )}
-                    </div>
-
-                    {/* Payment History */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-[var(--gray-900)]">Payment History</h3>
-                        {pastBills.length === 0 ? (
-                            <p className="text-[var(--gray-500)] italic">No payment history available.</p>
-                        ) : (
-                            <div className="bg-white rounded-xl border border-[var(--gray-200)] overflow-hidden">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-[var(--gray-50)] border-b border-[var(--gray-200)]">
-                                        <tr>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Description</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Date Paid</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Amount</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Status</th>
-                                            <th className="px-6 py-4 font-medium text-[var(--gray-700)]">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[var(--gray-200)]">
-                                        {pastBills.map((bill) => (
-                                            <tr key={bill.id} className="hover:bg-[var(--gray-50)]">
-                                                <td className="px-6 py-4">
-                                                    <p className="font-medium text-[var(--gray-900)]">{bill.bill_type}</p>
-                                                    <p className="text-xs text-[var(--gray-500)]">{bill.period_start} - {bill.period_end}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-[var(--gray-600)]">
-                                                    {new Date().toLocaleDateString()} {/* Mock date */}
-                                                </td>
-                                                <td className="px-6 py-4 font-medium text-[var(--gray-900)]">${bill.amount}</td>
-                                                <td className="px-6 py-4">
-                                                    <Badge variant="success">Paid</Badge>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <Button variant="ghost" size="sm" className="text-[var(--primary)] hover:bg-blue-50">
-                                                        <FiDownload className="mr-2" /> Receipt
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                            <FiCreditCard size={20} className="mb-2" />
+                                            <span className="text-xs font-medium">{method}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button variant="ghost" onClick={() => setSelectedBill(null)}>Cancel</Button>
+                            <Button onClick={handlePay} isLoading={isPaying} className="px-8">
+                                Pay ${selectedBill.amount.toFixed(2)}
+                            </Button>
+                        </div>
                     </div>
-                </>
-            )}
+                )}
+            </Modal>
         </div>
     );
 }

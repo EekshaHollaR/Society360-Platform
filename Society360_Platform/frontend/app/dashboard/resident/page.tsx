@@ -24,20 +24,23 @@ export default function ResidentDashboard() {
         const fetchData = async () => {
             if (!unit?.id) return;
             try {
-                const [billsRes, ticketsRes, announceRes, notifRes] = await Promise.all([
-                    residentApi.getBills(),
+                const results = await Promise.allSettled([
+                    residentApi.getBills(unit.id),
                     residentApi.getTickets(),
                     residentApi.getAnnouncements(),
                     residentApi.getNotifications()
                 ]);
 
-                if (billsRes.data.success) setBills(billsRes.data.data || []);
-                if (ticketsRes.data.success) setTickets(ticketsRes.data.data || []);
-                if (announceRes.data.success) setAnnouncements(announceRes.data.data || []);
-                if (notifRes.data.success) setNotifications(notifRes.data.data || []);
+                const [billsRes, ticketsRes, announceRes, notifRes] = results.map(r =>
+                    r.status === 'fulfilled' ? r.value : { data: { success: false, data: [] } }
+                ) as any;
+
+                if (billsRes.data?.success) setBills(billsRes.data.data || []);
+                if (ticketsRes.data?.success) setTickets(ticketsRes.data.data || []);
+                if (announceRes.data?.success) setAnnouncements(announceRes.data.data || []);
+                if (notifRes.data?.success) setNotifications(notifRes.data.data || []);
             } catch (error) {
                 console.error('Failed to fetch resident dashboard data', error);
-                // toast.error('Failed to load dashboard data'); 
             } finally {
                 setIsLoading(false);
             }

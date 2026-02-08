@@ -57,7 +57,7 @@ export default function VisitorsPage() {
                 toast.error(response.data.message || 'Failed to pre-approve visitor');
             }
         } catch (err: unknown) {
-            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string,string> } } };
+            const errorObj = err as { response?: { data?: { message?: string; errors?: Record<string, string> } } };
             const message = errorObj.response?.data?.message || 'Failed to pre-approve visitor';
 
             // Map field errors if present
@@ -73,7 +73,8 @@ export default function VisitorsPage() {
         }
     };
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status?: string) => {
+        if (!status) return <Badge variant="warning">Pending</Badge>;
         switch (status) {
             case 'approved': return <Badge variant="success">Approved</Badge>;
             case 'checked_in': return <Badge variant="info">Checked In</Badge>;
@@ -97,7 +98,7 @@ export default function VisitorsPage() {
 
             {isLoading ? (
                 <div className="grid gap-4">
-                    {[1,2,3].map((i) => (
+                    {[1, 2, 3].map((i) => (
                         <Card key={i} className="p-6 animate-pulse">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-[var(--gray-200)]"></div>
@@ -120,10 +121,10 @@ export default function VisitorsPage() {
                             <Card key={visitor.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full bg-[var(--gray-100)] flex items-center justify-center text-[var(--gray-600)] font-semibold text-lg">
-                                        {visitor.name[0]}
+                                        {(visitor.visitor_name || visitor.name || '?')[0].toUpperCase()}
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-[var(--gray-900)]">{visitor.name}</h3>
+                                        <h3 className="font-semibold text-[var(--gray-900)]">{visitor.visitor_name || visitor.name}</h3>
                                         <div className="flex items-center gap-2 text-sm text-[var(--gray-500)] mt-1">
                                             <span>{visitor.visitor_type}</span>
                                             <span>•</span>
@@ -170,11 +171,37 @@ export default function VisitorsPage() {
                         })}
                         error={errors.phone_number?.message}
                     />
-                    <Input
-                        label="Purpose (Optional)"
-                        placeholder="e.g. Dinner party"
-                        {...register('purpose')}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Select
+                            label="Visitor Type"
+                            options={[
+                                { value: 'guest', label: 'Guest' },
+                                { value: 'delivery', label: 'Delivery' },
+                                { value: 'service', label: 'Service' },
+                                { value: 'other', label: 'Other' }
+                            ]}
+                            {...register('visitor_type', { required: 'Visitor type is required' })}
+                            error={errors.visitor_type?.message}
+                        />
+                        <Input
+                            label="Expected Arrival"
+                            type="datetime-local"
+                            {...register('expected_arrival', { required: 'Arrival time is required' })}
+                            error={errors.expected_arrival?.message}
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Input
+                            label="Vehicle Number (Optional)"
+                            placeholder="e.g. KA 01 AB 1234"
+                            {...register('vehicle_number')}
+                        />
+                        <Input
+                            label="Purpose (Optional)"
+                            placeholder="e.g. Dinner party"
+                            {...register('purpose')}
+                        />
+                    </div>
 
                     <div className="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
