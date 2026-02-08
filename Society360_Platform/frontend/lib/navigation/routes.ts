@@ -64,6 +64,12 @@ export const navigationConfig: NavItem[] = [
         icon: FiActivity,
         roles: ['admin'],
     },
+    {
+        name: 'Announcements',
+        href: '/dashboard/admin/announcements',
+        icon: FiBell,
+        roles: ['admin'],
+    },
 
     // Staff Routes
     {
