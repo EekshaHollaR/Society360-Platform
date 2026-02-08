@@ -22,6 +22,8 @@ router.post(
         check('visitor_name', 'Visitor name is required').not().isEmpty(),
         check('visitor_phone', 'Valid phone number is required').optional().not().isEmpty(),
         check('unit_id', 'Unit ID is required').not().isEmpty(),
+        check('expected_arrival', 'Valid arrival date/time is required').optional().isISO8601(),
+        check('visitor_type', 'Visitor type must be one of: guest, delivery, service, other').optional().isIn(['guest', 'delivery', 'service', 'other']),
         validate
     ],
     visitorController.preApproveVisitor
