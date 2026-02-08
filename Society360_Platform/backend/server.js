@@ -13,7 +13,11 @@ const server = app.listen(PORT, () => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-    console.log(`Error: ${err.message}`);
-    // Close server & exit process
-    server.close(() => process.exit(1));
+    console.error(`Unhandled Rejection: ${err.message}`);
+    console.error(err.stack);
+
+    if (process.env.NODE_ENV !== 'development') {
+        // Exit in production
+        server.close(() => process.exit(1));
+    }
 });

@@ -17,21 +17,14 @@ const app = express();
 app.use(helmet()); // Sets various security headers
 app.use(hpp()); // Prevent HTTP Parameter Pollution attacks
 
-// Rate limiting to prevent brute-force/DDoS
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
-});
-app.use('/api/', limiter);
-
 // CORS configuration - be specific in production
 const allowedOrigins = [
     process.env.FRONTEND_URL,
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
-    'http://127.0.0.1:3001'
+    'http://127.0.0.1:3001',
+    'http://localhost:5173', // Vite default
 ].filter(Boolean);
 
 app.use(cors({
@@ -41,10 +34,24 @@ app.use(cors({
         if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV !== 'production') {
             return callback(null, true); // Allow all in dev if not in list
         }
-        return callback(null, true); // Default to allow for now to solve the user's issue
+        return callback(null, true);
     },
     credentials: true
 }));
+
+// Request logger
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Rate limiting to prevent brute-force/DDoS
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: process.env.NODE_ENV === 'development' ? 10000 : 100, // Very high limit for dev
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api/', limiter);
 
 app.use(express.json({ limit: '10kb' })); // Body parser with limit to prevent large payload attacks
 
