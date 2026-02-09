@@ -1,4 +1,5 @@
 const Finance = require('../models/financeModel');
+const Unit = require('../models/unitModel');
 const db = require('../config/db'); // Needed for transactions if complex validity checks are added later, for now model handles it.
 const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
@@ -95,46 +96,74 @@ exports.payBill = async (req, res) => {
         const { bill_id, payment_method, amount } = req.body;
         const payer_id = req.user.id; // From auth middleware
 
+        console.log('💳 Payment request received:', { bill_id, amount, payment_method, payer_id });
+
         const bill = await Finance.getBillById(bill_id);
         if (!bill) {
+            console.log('❌ Bill not found:', bill_id);
             return res.status(404).json({ success: false, message: 'Bill not found' });
         }
 
+        console.log('✅ Bill found:', { id: bill.id, amount: bill.amount, status: bill.status });
+
         if (bill.status === 'paid') {
+            console.log('⚠️ Bill already paid:', bill_id);
             return res.status(400).json({ success: false, message: 'Bill is already paid' });
         }
 
-        // Simple simulation: Amount must match exact bill amount
-        if (parseFloat(amount) !== parseFloat(bill.amount)) {
-            // In real world, partial payments might be allowed.
-            return res.status(400).json({ success: false, message: 'Payment amount must match bill amount' });
+        // Relaxed validation for prototype - allow small decimal differences
+        const billAmount = parseFloat(bill.amount);
+        const paymentAmount = parseFloat(amount);
+
+        if (Math.abs(billAmount - paymentAmount) > 0.01) {
+            console.log('❌ Amount mismatch:', { billAmount, paymentAmount, difference: Math.abs(billAmount - paymentAmount) });
+            return res.status(400).json({
+                success: false,
+                message: `Payment amount ($${paymentAmount}) must match bill amount ($${billAmount})`
+            });
         }
 
-        // Simulate transaction reference
-        const transaction_reference = 'TXN-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        // Simulate payment gateway processing
+        console.log('🔄 Processing simulated payment...');
+        const transaction_reference = `SIM-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
         const payment = await Finance.createPayment({
             bill_id,
             payer_id,
-            amount_paid: amount,
-            payment_method,
+            amount_paid: paymentAmount,
+            payment_method: payment_method || 'simulated',
             transaction_reference
         });
 
+        console.log('✅ Payment record created:', payment.id);
+
         await Finance.updateBillStatus(bill_id, 'paid');
+        console.log('✅ Bill status updated to PAID');
 
         // Log audit
-        await logAudit(payer_id, AUDIT_ACTIONS.PAYMENT_RECORDED, 'payments', payment.id, { bill_id, amount, payment_method }, req);
+        await logAudit(payer_id, AUDIT_ACTIONS.PAYMENT_RECORDED, 'payments', payment.id, { bill_id, amount: paymentAmount, payment_method }, req);
+
+        console.log('🎉 Payment completed successfully!');
 
         res.status(200).json({
             success: true,
-            message: 'Payment successful',
-            data: payment
+            message: 'Payment processed successfully (simulated transaction)',
+            data: {
+                ...payment,
+                transaction_reference,
+                bill_type: bill.bill_type,
+                bill_amount: billAmount
+            }
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Server Error processing payment' });
+        console.error('❌ Payment processing error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error processing payment',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 

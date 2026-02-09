@@ -38,10 +38,11 @@ class Finance {
         return result.rows[0];
     }
 
+
     static async updateBillStatus(id, status) {
         const query = `
             UPDATE bills
-            SET status = $1, updated_at = NOW()
+            SET status = $1
             WHERE id = $2
             RETURNING *;
         `;
