@@ -20,19 +20,63 @@ const MaintenanceTicket = {
     },
 
     findAll: async () => {
-        const query = 'SELECT * FROM maintenance_tickets ORDER BY created_at DESC';
+        const query = `
+            SELECT 
+                mt.*,
+                u.unit_number,
+                u.floor_number,
+                b.name as block_name,
+                req.full_name as requester_name,
+                staff.full_name as assigned_staff_name
+            FROM maintenance_tickets mt
+            LEFT JOIN units u ON mt.unit_id = u.id
+            LEFT JOIN blocks b ON u.block_id = b.id
+            LEFT JOIN users req ON mt.requester_id = req.id
+            LEFT JOIN users staff ON mt.assigned_to_id = staff.id
+            ORDER BY mt.created_at DESC
+        `;
         const result = await db.query(query);
         return result.rows;
     },
 
     findByUnit: async (unit_id) => {
-        const query = 'SELECT * FROM maintenance_tickets WHERE unit_id = $1 ORDER BY created_at DESC';
+        const query = `
+            SELECT 
+                mt.*,
+                u.unit_number,
+                u.floor_number,
+                b.name as block_name,
+                req.full_name as requester_name,
+                staff.full_name as assigned_staff_name
+            FROM maintenance_tickets mt
+            LEFT JOIN units u ON mt.unit_id = u.id
+            LEFT JOIN blocks b ON u.block_id = b.id
+            LEFT JOIN users req ON mt.requester_id = req.id
+            LEFT JOIN users staff ON mt.assigned_to_id = staff.id
+            WHERE mt.unit_id = $1 
+            ORDER BY mt.created_at DESC
+        `;
         const result = await db.query(query, [unit_id]);
         return result.rows;
     },
 
     findByAssignedStaff: async (staff_id) => {
-        const query = 'SELECT * FROM maintenance_tickets WHERE assigned_to_id = $1 ORDER BY created_at DESC';
+        const query = `
+            SELECT 
+                mt.*,
+                u.unit_number,
+                u.floor_number,
+                b.name as block_name,
+                req.full_name as requester_name,
+                staff.full_name as assigned_staff_name
+            FROM maintenance_tickets mt
+            LEFT JOIN units u ON mt.unit_id = u.id
+            LEFT JOIN blocks b ON u.block_id = b.id
+            LEFT JOIN users req ON mt.requester_id = req.id
+            LEFT JOIN users staff ON mt.assigned_to_id = staff.id
+            WHERE mt.assigned_to_id = $1 
+            ORDER BY mt.created_at DESC
+        `;
         const result = await db.query(query, [staff_id]);
         return result.rows;
     },

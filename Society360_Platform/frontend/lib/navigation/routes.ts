@@ -10,7 +10,9 @@ import {
     FiUserCheck,
     FiBell,
     FiCreditCard,
-    FiClipboard
+    FiClipboard,
+    FiTrendingUp,
+    FiDollarSign
 } from 'react-icons/fi';
 
 export interface NavItem {
@@ -47,9 +49,15 @@ export const navigationConfig: NavItem[] = [
         roles: ['admin'],
     },
     {
-        name: 'Finance',
+        name: 'Finance & Bills',
         href: '/dashboard/admin/finance',
         icon: FiCreditCard,
+        roles: ['admin'],
+    },
+    {
+        name: 'Society Expenses',
+        href: '/dashboard/admin/expenses',
+        icon: FiTrendingUp,
         roles: ['admin'],
     },
     {
@@ -94,6 +102,12 @@ export const navigationConfig: NavItem[] = [
         name: 'Announcements',
         href: '/dashboard/staff/announcements',
         icon: FiBell,
+        roles: ['staff'],
+    },
+    {
+        name: 'My Earnings',
+        href: '/dashboard/staff/earnings',
+        icon: FiDollarSign,
         roles: ['staff'],
     },
 

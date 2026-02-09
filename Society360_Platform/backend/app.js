@@ -63,6 +63,7 @@ app.use('/api/finance', require('./routes/financeRoutes'));
 app.use('/api/communication', communicationRoutes);
 app.use('/api/units', require('./routes/unitRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/expenses', require('./routes/expenseRoutes'));
 
 
 // Base route
