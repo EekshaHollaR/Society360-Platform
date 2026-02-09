@@ -199,6 +199,63 @@ class Expense {
         const result = await db.query(query, [id]);
         return result.rows[0];
     }
+
+    // Generate monthly salaries for all staff
+    static async generateMonthlySalaries(month, year, adminId) {
+        // 1. Get all staff (role_id = 2) with a base_salary
+        const staffQuery = `
+            SELECT id, full_name, base_salary 
+            FROM users 
+            WHERE role_id = 2 AND base_salary IS NOT NULL AND status = 'active'
+        `;
+        const staffResult = await db.query(staffQuery);
+        const staffList = staffResult.rows;
+
+        const results = {
+            generated: 0,
+            skipped: 0,
+            errors: 0,
+            details: []
+        };
+
+        for (const staff of staffList) {
+            try {
+                // 2. Check if salary already exists for this staff in this period
+                const checkQuery = `
+                    SELECT id FROM expenses 
+                    WHERE staff_id = $1 AND expense_type = 'salary' 
+                    AND period_month = $2 AND period_year = $3
+                `;
+                const checkResult = await db.query(checkQuery, [staff.id, month, year]);
+
+                if (checkResult.rows.length === 0) {
+                    // 3. Create salary expense
+                    await this.create({
+                        expense_type: 'salary',
+                        category: 'Monthly Salary',
+                        amount: staff.base_salary,
+                        description: `Auto-generated salary for ${new Date(year, month - 1).toLocaleString('default', { month: 'long' })} ${year}`,
+                        staff_id: staff.id,
+                        payment_status: 'pending',
+                        period_month: month,
+                        period_year: year,
+                        recorded_by_id: adminId
+                    });
+                    results.generated++;
+                    results.details.push({ name: staff.full_name, status: 'generated', amount: staff.base_salary });
+                } else {
+                    results.skipped++;
+                    results.details.push({ name: staff.full_name, status: 'skipped (already exists)' });
+                }
+            } catch (err) {
+                console.error(`Error generating salary for ${staff.full_name}:`, err);
+                results.errors++;
+                results.details.push({ name: staff.full_name, status: 'error', error: err.message });
+            }
+        }
+
+        return results;
+    }
 }
 
 module.exports = Expense;

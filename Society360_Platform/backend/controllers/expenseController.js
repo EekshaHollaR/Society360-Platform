@@ -139,7 +139,7 @@ exports.getStaffExpenses = async (req, res) => {
                 performance: {
                     tasks_completed: performance.maintenance_tasks_completed || 0,
                     total_maintenance_value: parseFloat(performance.total_maintenance_value || 0),
-                    total_salary_received: parseFloat(performance.total_salary_paid || 0),
+                    total_salary_paid: parseFloat(performance.total_salary_paid || 0),
                     salary_payment_count: performance.salary_payments || 0
                 }
             }
@@ -316,6 +316,47 @@ exports.deleteExpense = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error deleting expense'
+        });
+    }
+};
+
+// Generate monthly salaries for all staff
+exports.generateMonthlySalaries = async (req, res) => {
+    try {
+        const { month, year } = req.body;
+
+        if (!month || !year) {
+            return res.status(400).json({
+                success: false,
+                message: 'Month and year are required'
+            });
+        }
+
+        console.log(`💵 Generating salaries for ${month}/${year}`);
+
+        const results = await Expense.generateMonthlySalaries(month, year, req.user.id);
+
+        // Log audit
+        await logAudit(
+            req.user.id,
+            'SALARIES_GENERATED',
+            'expenses',
+            null,
+            { month, year, generated_count: results.generated },
+            req
+        );
+
+        res.json({
+            success: true,
+            message: `Batch generation complete. Generated: ${results.generated}, Skipped: ${results.skipped}`,
+            data: results
+        });
+    } catch (error) {
+        console.error('❌ Error generating salaries:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error generating salaries',
+            error: error.message
         });
     }
 };

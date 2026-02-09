@@ -40,6 +40,8 @@ export default function AdminExpensesPage() {
         period_year: new Date().getFullYear()
     });
 
+    const [isGenerating, setIsGenerating] = useState(false);
+
     useEffect(() => {
         fetchData();
         fetchStaff();
@@ -84,6 +86,23 @@ export default function AdminExpensesPage() {
             }
         } catch (error) {
             console.error('Error fetching staff:', error);
+        }
+    };
+
+    const handleGenerateSalaries = async () => {
+        if (!confirm(`Generate salaries for ${filters.period_month}/${filters.period_year}?`)) return;
+
+        setIsGenerating(true);
+        try {
+            const res = await expenseApi.generateSalaries(filters.period_month, filters.period_year);
+            if (res.data.success) {
+                toast.success(res.data.message);
+                fetchData();
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to generate salaries');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -170,10 +189,21 @@ export default function AdminExpensesPage() {
                     <h1 className="text-3xl font-semibold tracking-tight">Expense Management</h1>
                     <p className="text-slate-400">Track salaries, maintenance costs, and utilities</p>
                 </div>
-                <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
-                    <FiPlus size={18} />
-                    Record Expense
-                </Button>
+                <div className="flex gap-3">
+                    <Button
+                        variant="secondary"
+                        onClick={handleGenerateSalaries}
+                        isLoading={isGenerating}
+                        className="flex items-center gap-2"
+                    >
+                        <FiUsers size={18} />
+                        Bulk Generate Salaries
+                    </Button>
+                    <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+                        <FiPlus size={18} />
+                        Record Expense
+                    </Button>
+                </div>
             </div>
 
             {/* Statistics Cards */}
@@ -399,7 +429,15 @@ export default function AdminExpensesPage() {
                             <label className="block text-sm font-medium text-slate-300 mb-2">Staff Member</label>
                             <Select
                                 value={formData.staff_id}
-                                onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })}
+                                onChange={(e) => {
+                                    const staffId = e.target.value;
+                                    const selectedStaff = staffList.find(s => s.id === staffId);
+                                    setFormData({
+                                        ...formData,
+                                        staff_id: staffId,
+                                        amount: selectedStaff?.base_salary ? selectedStaff.base_salary.toString() : formData.amount
+                                    });
+                                }}
                                 options={[
                                     { value: '', label: 'Select Staff' },
                                     ...staffList.map(staff => ({

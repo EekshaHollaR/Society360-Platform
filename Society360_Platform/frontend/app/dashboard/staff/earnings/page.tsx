@@ -64,8 +64,8 @@ export default function StaffEarningsPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Total Salary Received</p>
-                                    <h3 className="text-2xl font-bold mt-1">${performance.total_salary_paid.toFixed(2)}</h3>
-                                    <p className="text-xs text-slate-500 mt-1">{performance.salary_payment_count} payments total</p>
+                                    <h3 className="text-2xl font-bold mt-1">${(performance.total_salary_paid ?? 0).toFixed(2)}</h3>
+                                    <p className="text-xs text-slate-500 mt-1">{performance.salary_payment_count ?? 0} payments total</p>
                                 </div>
                                 <FiDollarSign size={32} className="text-indigo-400 opacity-50" />
                             </div>
@@ -77,7 +77,7 @@ export default function StaffEarningsPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Tasks Completed</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-emerald-400">{performance.tasks_completed}</h3>
+                                    <h3 className="text-2xl font-bold mt-1 text-emerald-400">{performance.tasks_completed ?? 0}</h3>
                                     <p className="text-xs text-slate-500 mt-1">Maintenance requests handled</p>
                                 </div>
                                 <FiCheckCircle size={32} className="text-emerald-400 opacity-50" />
@@ -90,7 +90,7 @@ export default function StaffEarningsPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Maintenance Work Value</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-amber-400">${performance.total_maintenance_value.toFixed(2)}</h3>
+                                    <h3 className="text-2xl font-bold mt-1 text-amber-400">${(performance.total_maintenance_value ?? 0).toFixed(2)}</h3>
                                     <p className="text-xs text-slate-500 mt-1">Impact on society maintenance</p>
                                 </div>
                                 <FiTool size={32} className="text-amber-400 opacity-50" />

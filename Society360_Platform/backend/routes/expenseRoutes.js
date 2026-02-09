@@ -95,4 +95,17 @@ router.delete(
     expenseController.deleteExpense
 );
 
+// Admin: Batch generate monthly salaries
+router.post(
+    '/generate-salaries',
+    protect,
+    authorize('admin'),
+    [
+        check('month', 'Month must be between 1-12').isInt({ min: 1, max: 12 }),
+        check('year', 'Year is required').isInt({ min: 2024 }),
+        validate
+    ],
+    expenseController.generateMonthlySalaries
+);
+
 module.exports = router;

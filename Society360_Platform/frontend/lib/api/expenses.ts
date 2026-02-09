@@ -141,6 +141,11 @@ export const expenseApi = {
     // Delete expense
     deleteExpense: async (id: string) => {
         return api.delete(`/expenses/${id}`);
+    },
+
+    // Batch generate salaries
+    generateSalaries: async (month: number, year: number) => {
+        return api.post('/expenses/generate-salaries', { month, year });
     }
 };
 
