@@ -46,6 +46,12 @@ export default function AuditLogsPage() {
     return <Badge variant="default">ACTION</Badge>;
   };
 
+  const filteredLogs = logs.filter(log =>
+    log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.resource_type?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-12 text-white">
 
@@ -62,8 +68,8 @@ export default function AuditLogsPage() {
       {/* Search */}
       <Card className="p-5">
 
-        <div className="relative max-w-sm">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative max-w-sm group">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition" />
 
           <input
             placeholder="Search logs..."
@@ -94,73 +100,77 @@ export default function AuditLogsPage() {
 
             <table className="w-full text-sm">
 
-              <thead className="border-b border-white/10 text-slate-400">
+              <thead className="border-b border-white/10 text-slate-400 bg-[#0b1220]/40">
                 <tr>
                   {['Time', 'User', 'Action', 'Resource', 'Details'].map(h => (
-                    <th key={h} className="py-4 px-6 text-left font-medium">{h}</th>
+                    <th key={h} className="py-4 px-6 text-left font-medium">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-white/5">
 
-                {logs.length === 0 ? (
+                {filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-16 text-center text-slate-400">
                       No audit logs found.
                     </td>
                   </tr>
                 ) : (
-                  logs
-                    .filter(log =>
-                      log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      log.resource_type?.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map(log => (
-                      <tr
-                        key={log.id}
-                        className="hover:bg-white/5 transition-colors"
-                      >
+                  filteredLogs.map(log => (
+                    <tr
+                      key={log.id}
+                      className="
+                        hover:bg-white/5 
+                        transition-colors
+                        even:bg-white/[0.015]
+                      "
+                    >
 
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <div className="flex items-center gap-2 text-slate-300">
-                            <FiClock className="text-slate-400" />
-                            {new Date(log.created_at).toLocaleString()}
-                          </div>
-                        </td>
+                      <td className="py-4 px-6 whitespace-nowrap text-slate-300 font-medium">
+                        <div className="flex items-center gap-2">
+                          <FiClock className="text-slate-400" />
+                          {new Date(log.created_at).toLocaleString()}
+                        </div>
+                      </td>
 
-                        <td className="px-6">
-                          <div className="flex items-center gap-2 text-slate-300">
-                            <FiUser className="text-slate-400" />
-                            {log.user_name || 'System'}
-                          </div>
-                        </td>
+                      <td className="px-6">
+                        <div className="flex items-center gap-2 text-slate-300">
+                          <FiUser className="text-slate-400" />
+                          {log.user_name || 'System'}
+                        </div>
+                      </td>
 
-                        <td className="px-6">
-                          <div className="flex flex-col gap-1">
-                            {getActionBadge(log.action)}
-                            <span className="text-xs capitalize text-slate-400">
-                              {formatAction(log.action)}
-                            </span>
-                          </div>
-                        </td>
+                      <td className="px-6">
+                        <div className="flex flex-col gap-1">
+                          {getActionBadge(log.action)}
+                          <span className="text-xs capitalize text-slate-400">
+                            {formatAction(log.action)}
+                          </span>
+                        </div>
+                      </td>
 
-                        <td className="px-6 capitalize text-slate-300">
-                          {log.resource_type}
-                        </td>
+                      <td className="px-6 capitalize text-slate-300">
+                        {log.resource_type}
+                      </td>
 
-                        <td className="px-6 max-w-xs">
-                          <p
-                            className="truncate text-xs text-slate-400"
-                            title={JSON.stringify(log.details)}
-                          >
-                            {JSON.stringify(log.details)}
-                          </p>
-                        </td>
+                      <td className="px-6 max-w-xs">
+                        <div
+                          className="
+                            truncate text-xs text-slate-400 
+                            hover:text-slate-200 transition
+                            cursor-help
+                          "
+                          title={JSON.stringify(log.details, null, 2)}
+                        >
+                          {JSON.stringify(log.details)}
+                        </div>
+                      </td>
 
-                      </tr>
-                    ))
+                    </tr>
+                  ))
                 )}
 
               </tbody>

@@ -40,26 +40,32 @@ export default function ReportsPage() {
         visitors: visitorRes.data.data.trends.map((t: any) => ({
           name: new Date(t.date).toLocaleDateString('default', { weekday: 'short' }),
           visitors: parseInt(t.visitor_count),
-          deliveries: Math.floor(parseInt(t.visitor_count) * 0.4) // Mock deliveries as subset
+          deliveries: Math.floor(parseInt(t.visitor_count) * 0.4)
         })).reverse(),
+
         occupancy: unitRes.data.data.by_block.map((b: any) => ({
           name: b.block_name,
           occupied: parseInt(b.occupied),
           vacant: parseInt(b.vacant)
         })),
+
         maintenance: [
           { name: 'Week 1', received: 12, resolved: 10 },
           { name: 'Week 2', received: 19, resolved: 15 },
           { name: 'Week 3', received: 15, resolved: 18 },
           { name: 'Week 4', received: 8, resolved: 12 },
-        ], // Maintenance trends might need a specific backend endpoint for history
+        ],
+
         stats: {
           activeUsers: dashboardRes.data.data.activeUsers,
-          occupancyRate: Math.round((dashboardRes.data.data.occupiedUnitsCount / dashboardRes.data.data.totalUnits) * 100),
-          avgResolutionTime: '4.2h' // This needs specific calculation in backend
+          occupancyRate: Math.round(
+            (dashboardRes.data.data.occupiedUnitsCount /
+              dashboardRes.data.data.totalUnits) * 100
+          ),
+          avgResolutionTime: '4.2h'
         }
       });
-    } catch (error) {
+    } catch {
       toast.error('Failed to load report data');
     } finally {
       setIsLoading(false);
@@ -77,6 +83,27 @@ export default function ReportsPage() {
       </div>
     );
   }
+
+  const tooltipStyle = {
+    cursor: { fill: 'rgba(255,255,255,0.04)' },
+    contentStyle: {
+      background: 'rgba(11,18,32,0.9)',
+      backdropFilter: 'blur(8px)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '12px',
+      color: '#fff',
+      boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
+      padding: '10px 14px',
+      fontSize: '13px'
+    },
+    labelStyle: {
+      color: '#c7d2fe',
+      fontWeight: 600
+    },
+    itemStyle: {
+      color: '#e5e7eb'
+    }
+  };
 
   return (
     <div className="space-y-12 text-white">
@@ -105,7 +132,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Active Residents"
@@ -135,7 +162,7 @@ export default function ReportsPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        {/* Visitor Flow */}
+        {/* Visitor Traffic */}
         <Card>
           <CardHeader>
             <CardTitle>Visitor Traffic</CardTitle>
@@ -154,7 +181,8 @@ export default function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
+
+                <Tooltip {...tooltipStyle} />
                 <Legend />
 
                 <Area
@@ -178,7 +206,7 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
-        {/* Ticket Trends */}
+        {/* Maintenance */}
         <Card>
           <CardHeader>
             <CardTitle>Maintenance Performance</CardTitle>
@@ -190,7 +218,8 @@ export default function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
+
+                <Tooltip {...tooltipStyle} />
                 <Legend />
 
                 <Line
@@ -224,20 +253,12 @@ export default function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
-                <Tooltip />
+
+                <Tooltip {...tooltipStyle} />
                 <Legend />
 
-                <Bar
-                  dataKey="occupied"
-                  fill="#6366f1"
-                  radius={[8, 8, 0, 0]}
-                />
-
-                <Bar
-                  dataKey="vacant"
-                  fill="rgba(255,255,255,0.12)"
-                  radius={[8, 8, 0, 0]}
-                />
+                <Bar dataKey="occupied" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="vacant" fill="rgba(255,255,255,0.12)" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

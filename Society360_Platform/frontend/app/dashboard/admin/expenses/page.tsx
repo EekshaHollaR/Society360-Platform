@@ -347,52 +347,80 @@ export default function AdminExpensesPage() {
 
             {/* Filters */}
             <Card>
-                <CardContent className="p-6">
-                    <div className="flex items-center gap-4 flex-wrap">
-                        <FiFilter className="text-slate-400" size={20} />
-                        <Select
-                            value={filters.expense_type}
-                            onChange={(e) => setFilters({ ...filters, expense_type: e.target.value })}
-                            options={[
-                                { value: '', label: 'All Types' },
-                                { value: 'salary', label: 'Salary' },
-                                { value: 'maintenance', label: 'Maintenance' },
-                                { value: 'utility', label: 'Utility' },
-                                { value: 'other', label: 'Other' }
-                            ]}
-                        />
+  <CardContent className="p-4">
+    <div className="flex items-center gap-3 flex-wrap">
 
-                        <Select
-                            value={filters.payment_status}
-                            onChange={(e) => setFilters({ ...filters, payment_status: e.target.value })}
-                            options={[
-                                { value: '', label: 'All Status' },
-                                { value: 'pending', label: 'Pending' },
-                                { value: 'paid', label: 'Paid' },
-                                { value: 'cancelled', label: 'Cancelled' }
-                            ]}
-                        />
+      <FiFilter className="text-slate-400" size={18} />
 
-                        <Select
-                            value={filters.period_month.toString()}
-                            onChange={(e) => setFilters({ ...filters, period_month: parseInt(e.target.value) })}
-                            options={[...Array(12)].map((_, i) => ({
-                                value: (i + 1).toString(),
-                                label: new Date(2024, i).toLocaleString('default', { month: 'long' })
-                            }))}
-                        />
+      <div className="w-44">
+        <Select
+          value={filters.expense_type}
+          onChange={(e) =>
+            setFilters({ ...filters, expense_type: e.target.value })
+          }
+          options={[
+            { value: '', label: 'All Types' },
+            { value: 'salary', label: 'Salary' },
+            { value: 'maintenance', label: 'Maintenance' },
+            { value: 'utility', label: 'Utility' },
+            { value: 'other', label: 'Other' }
+          ]}
+        />
+      </div>
 
-                        <Select
-                            value={filters.period_year.toString()}
-                            onChange={(e) => setFilters({ ...filters, period_year: parseInt(e.target.value) })}
-                            options={[2024, 2025, 2026].map(year => ({
-                                value: year.toString(),
-                                label: year.toString()
-                            }))}
-                        />
-                    </div>
-                </CardContent>
-            </Card>
+      <div className="w-44">
+        <Select
+          value={filters.payment_status}
+          onChange={(e) =>
+            setFilters({ ...filters, payment_status: e.target.value })
+          }
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'paid', label: 'Paid' },
+            { value: 'cancelled', label: 'Cancelled' }
+          ]}
+        />
+      </div>
+
+      <div className="w-40">
+        <Select
+          value={filters.period_month.toString()}
+          onChange={(e) =>
+            setFilters({
+              ...filters,
+              period_month: parseInt(e.target.value)
+            })
+          }
+          options={[...Array(12)].map((_, i) => ({
+            value: (i + 1).toString(),
+            label: new Date(2024, i).toLocaleString('default', {
+              month: 'long'
+            })
+          }))}
+        />
+      </div>
+
+      <div className="w-32">
+        <Select
+          value={filters.period_year.toString()}
+          onChange={(e) =>
+            setFilters({
+              ...filters,
+              period_year: parseInt(e.target.value)
+            })
+          }
+          options={[2024, 2025, 2026].map((year) => ({
+            value: year.toString(),
+            label: year.toString()
+          }))}
+        />
+      </div>
+
+    </div>
+  </CardContent>
+</Card>
+
 
             {/* Expenses Table */}
             <Card>
