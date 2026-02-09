@@ -92,18 +92,43 @@ const MaintenanceTicket = {
         return result.rows[0];
     },
 
-    updateStatus: async (id, status) => {
-        let query = 'UPDATE maintenance_tickets SET status = $1';
-        const values = [status, id];
+    updateStatus: async (id, status, actualCost = null) => {
+        let query = 'UPDATE maintenance_tickets SET status = $1, updated_at = NOW()';
+        const values = [status];
 
         if (status === 'resolved') {
             query += ', resolved_at = NOW()';
+            if (actualCost !== null) {
+                query += ', actual_cost = $3';
+                values.push(actualCost);
+            }
         }
 
-        query += ' WHERE id = $2 RETURNING *';
+        query += ` WHERE id = $2 RETURNING *`;
+        values.splice(1, 0, id); // Insert id at index 1
 
         const result = await db.query(query, values);
         return result.rows[0];
+    },
+
+    getPendingPayments: async () => {
+        const query = `
+            SELECT 
+                mt.*,
+                u.unit_number,
+                b.name as block_name,
+                staff.full_name as staff_name,
+                staff.id as staff_id
+            FROM maintenance_tickets mt
+            JOIN units u ON mt.unit_id = u.id
+            JOIN blocks b ON u.block_id = b.id
+            JOIN users staff ON mt.assigned_to_id = staff.id
+            LEFT JOIN expenses e ON e.maintenance_ticket_id = mt.id
+            WHERE mt.status = 'resolved' AND e.id IS NULL
+            ORDER BY mt.resolved_at ASC
+        `;
+        const result = await db.query(query);
+        return result.rows;
     }
 };
 

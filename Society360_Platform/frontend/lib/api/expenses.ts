@@ -146,6 +146,15 @@ export const expenseApi = {
     // Batch generate salaries
     generateSalaries: async (month: number, year: number) => {
         return api.post('/expenses/generate-salaries', { month, year });
+    },
+
+    // Maintenance Payouts
+    getPendingMaintenancePayments: async () => {
+        return api.get('/maintenance/pending-payments');
+    },
+
+    payMaintenanceTicket: async (id: string, bonus_percentage: number = 10) => {
+        return api.post(`/maintenance/${id}/pay`, { bonus_percentage });
     }
 };
 

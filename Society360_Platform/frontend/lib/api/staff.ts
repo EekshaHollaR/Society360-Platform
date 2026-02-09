@@ -8,10 +8,14 @@ export interface Task {
     status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'rejected';
     priority: 'low' | 'medium' | 'high' | 'critical';
     created_at: string;
+    actual_cost?: number;
+    resolved_at?: string;
     unit?: {
         unit_number: string;
         block: string;
     }
+    assigned_to_id?: string;
+    assigned_staff_name?: string;
 }
 
 export interface Visitor {
@@ -34,8 +38,8 @@ export const staffApi = {
         return api.get('/maintenance'); // For staff, this returns assigned tickets
     },
 
-    updateTaskStatus: async (id: string, status: string) => {
-        return api.put(`/maintenance/${id}/status`, { status });
+    updateTaskStatus: async (id: string, status: string, actual_cost?: number) => {
+        return api.put(`/maintenance/${id}/status`, { status, actual_cost });
     },
 
     // Visitor Management

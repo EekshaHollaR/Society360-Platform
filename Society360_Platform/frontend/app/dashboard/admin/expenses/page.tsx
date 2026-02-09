@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiDollarSign, FiPlus, FiFilter, FiCheckCircle, FiClock, FiX, FiTrendingUp, FiUsers } from 'react-icons/fi';
+import { FiDollarSign, FiPlus, FiFilter, FiCheckCircle, FiClock, FiX, FiTrendingUp, FiUsers, FiTool } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -40,7 +40,9 @@ export default function AdminExpensesPage() {
         period_year: new Date().getFullYear()
     });
 
+    const [pendingTickets, setPendingTickets] = useState<any[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isPayingTicket, setIsPayingTicket] = useState<string | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -55,12 +57,13 @@ export default function AdminExpensesPage() {
                 Object.entries(filters).filter(([_, v]) => v !== '')
             );
 
-            const [expensesRes, statsRes] = await Promise.all([
+            const [expensesRes, statsRes, pendingRes] = await Promise.all([
                 expenseApi.getExpenses(activeFilters),
                 expenseApi.getExpenseStats({
                     period_month: filters.period_month,
                     period_year: filters.period_year
-                })
+                }),
+                expenseApi.getPendingMaintenancePayments()
             ]);
 
             if (expensesRes.data.success) {
@@ -68,6 +71,9 @@ export default function AdminExpensesPage() {
             }
             if (statsRes.data.success) {
                 setStats(statsRes.data.data);
+            }
+            if (pendingRes.data.success) {
+                setPendingTickets(pendingRes.data.data);
             }
         } catch (error) {
             console.error('Error fetching expenses:', error);
@@ -103,6 +109,23 @@ export default function AdminExpensesPage() {
             toast.error(error.response?.data?.message || 'Failed to generate salaries');
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    const handlePayMaintenance = async (ticketId: string) => {
+        if (!confirm('Confirm payment for this maintenance task? (10% bonus will be added automatically)')) return;
+
+        setIsPayingTicket(ticketId);
+        try {
+            const res = await expenseApi.payMaintenanceTicket(ticketId, 10);
+            if (res.data.success) {
+                toast.success('Maintenance payout recorded successfully');
+                fetchData();
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to process payment');
+        } finally {
+            setIsPayingTicket(null);
         }
     };
 
@@ -205,6 +228,67 @@ export default function AdminExpensesPage() {
                     </Button>
                 </div>
             </div>
+
+            {/* Maintenance Payouts Section */}
+            {pendingTickets.length > 0 && (
+                <Card className="border-amber-500/20 bg-amber-500/5">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-500/20 rounded-lg text-amber-400">
+                                <FiTool size={20} />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg">Pending Maintenance Payouts</CardTitle>
+                                <p className="text-sm text-slate-400 mt-1">Staff have completed these tasks and reported costs.</p>
+                            </div>
+                        </div>
+                        <Badge variant="warning">{pendingTickets.length} Pending</Badge>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto mt-4">
+                            <table className="w-full text-sm">
+                                <thead className="text-left border-b border-white/10">
+                                    <tr className="text-slate-400">
+                                        <th className="pb-3 font-medium">Task / Unit</th>
+                                        <th className="pb-3 font-medium">Staff</th>
+                                        <th className="pb-3 font-medium">Actual Cost</th>
+                                        <th className="pb-3 font-medium">Total (Inc. 10% Bonus)</th>
+                                        <th className="pb-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {pendingTickets.map((ticket) => {
+                                        const cost = parseFloat(ticket.actual_cost || 0);
+                                        const bonus = cost * 0.1;
+                                        const total = cost + bonus;
+                                        return (
+                                            <tr key={ticket.id} className="hover:bg-white/5 transition-colors">
+                                                <td className="py-4">
+                                                    <div className="font-medium text-white">{ticket.title}</div>
+                                                    <div className="text-xs text-slate-500">Unit {ticket.unit_number}, {ticket.block_name}</div>
+                                                </td>
+                                                <td className="py-4 text-slate-300">{ticket.staff_name}</td>
+                                                <td className="py-4 text-slate-300">${cost.toFixed(2)}</td>
+                                                <td className="py-4 font-bold text-amber-400">${total.toFixed(2)}</td>
+                                                <td className="py-4 text-right">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => handlePayMaintenance(ticket.id)}
+                                                        isLoading={isPayingTicket === ticket.id}
+                                                    >
+                                                        Approve & Pay
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Statistics Cards */}
             {stats && (

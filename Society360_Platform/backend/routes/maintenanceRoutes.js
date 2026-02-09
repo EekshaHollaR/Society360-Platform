@@ -48,4 +48,10 @@ router.put(
 
 router.get('/', maintenanceController.getTicketHistory);
 
+// Admin: Get resolved tickets awaiting payment
+router.get('/pending-payments', maintenanceController.getPendingPayments);
+
+// Admin: Process payout for resolved maintenance ticket
+router.post('/:id/pay', maintenanceController.processMaintenancePayment);
+
 module.exports = router;
