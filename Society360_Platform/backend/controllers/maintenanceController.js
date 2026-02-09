@@ -157,6 +157,8 @@ const MaintenanceController = {
                 expense_type: 'maintenance',
                 category: 'Maintenance Payout',
                 amount: totalAmount,
+                base_amount: amount,
+                bonus_amount: bonus,
                 description: `Payout for ticket: ${ticket.title}. Includes ${bonus_percentage}% bonus ($${bonus.toFixed(2)}).`,
                 staff_id: ticket.assigned_to_id,
                 maintenance_ticket_id: ticket.id,
@@ -222,6 +224,19 @@ const MaintenanceController = {
                     data: allTickets
                 });
             }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Server Error' });
+        }
+    },
+
+    getStaffStatistics: async (req, res) => {
+        try {
+            const staffList = await MaintenanceTicket.getStaffList();
+            res.json({
+                success: true,
+                data: staffList
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ success: false, message: 'Server Error' });

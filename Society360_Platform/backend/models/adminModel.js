@@ -100,13 +100,24 @@ const AdminModel = {
                      WHEN position(' ' in u.full_name) > 0 THEN substring(u.full_name from position(' ' in u.full_name) + 1)
                      ELSE ''
                    END as last_name,
-                   u.email, u.phone_number, u.status, u.profile_picture_url,
+                   u.email, u.phone_number, u.status, u.profile_picture_url, u.base_salary,
                    u.created_at, u.updated_at, r.name as role, r.id as role_id
             FROM users u
             LEFT JOIN roles r ON u.role_id = r.id
             WHERE u.id = $1 AND u.deleted_at IS NULL
         `;
         const result = await db.query(query, [id]);
+        return result.rows[0];
+    },
+
+    updateSalary: async (id, salary) => {
+        const query = `
+            UPDATE users
+            SET base_salary = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2 AND deleted_at IS NULL
+            RETURNING id, full_name, email, base_salary, updated_at
+        `;
+        const result = await db.query(query, [salary, id]);
         return result.rows[0];
     },
 
@@ -140,23 +151,30 @@ const AdminModel = {
      * Update user details
      */
     updateUser: async (id, userData) => {
-        const { full_name, email, phone_number, profile_picture_url } = userData;
+        const { first_name, last_name, full_name, email, phone_number, status, profile_picture_url } = userData;
+
+        // Handle name components
+        let final_full_name = full_name;
+        if (!final_full_name && (first_name || last_name)) {
+            final_full_name = `${first_name || ''} ${last_name || ''}`.trim();
+        }
 
         const query = `
             UPDATE users
             SET full_name = COALESCE($1, full_name),
                 email = COALESCE($2, email),
                 phone_number = COALESCE($3, phone_number),
-                profile_picture_url = COALESCE($4, profile_picture_url),
+                status = COALESCE($4, status),
+                profile_picture_url = COALESCE($5, profile_picture_url),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $5 AND deleted_at IS NULL
+            WHERE id = $6 AND deleted_at IS NULL
             RETURNING id, full_name, 
                       split_part(full_name, ' ', 1) as first_name,
                       substring(full_name from position(' ' in full_name) + 1) as last_name,
                       email, phone_number, status, updated_at
         `;
 
-        const values = [full_name, email, phone_number, profile_picture_url, id];
+        const values = [final_full_name, email, phone_number, status, profile_picture_url, id];
         const result = await db.query(query, values);
         return result.rows[0];
     },

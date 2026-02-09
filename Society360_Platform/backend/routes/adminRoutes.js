@@ -46,9 +46,10 @@ router.post(
 router.put('/users/:id', AdminController.updateUser);
 router.delete('/users/:id', AdminController.deleteUser);
 
-// User status and role management
+// User status, role and salary management
 router.patch('/users/:id/status', AdminController.updateUserStatus);
 router.patch('/users/:id/role', AdminController.updateUserRole);
+router.patch('/users/:id/salary', AdminController.updateSalary);
 
 // Roles
 router.get('/roles', AdminController.getAllRoles);

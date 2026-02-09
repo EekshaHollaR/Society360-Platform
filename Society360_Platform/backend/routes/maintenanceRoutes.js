@@ -51,6 +51,9 @@ router.get('/', maintenanceController.getTicketHistory);
 // Admin: Get resolved tickets awaiting payment
 router.get('/pending-payments', maintenanceController.getPendingPayments);
 
+// Admin: Get staff statistics
+router.get('/staff-stats', maintenanceController.getStaffStatistics);
+
 // Admin: Process payout for resolved maintenance ticket
 router.post('/:id/pay', maintenanceController.processMaintenancePayment);
 

@@ -119,6 +119,23 @@ const ReportModel = {
         `;
         const trendsResult = await db.query(trendsQuery);
 
+        // Total expenses
+        const expensesQuery = `
+            SELECT COALESCE(SUM(amount), 0) as total_expenses
+            FROM expenses
+            WHERE payment_status = 'paid'
+        `;
+        const expensesResult = await db.query(expensesQuery);
+
+        // Expense distribution
+        const distributionQuery = `
+            SELECT expense_type as name, SUM(amount) as value
+            FROM expenses
+            WHERE payment_status = 'paid'
+            GROUP BY expense_type
+        `;
+        const distributionResult = await db.query(distributionQuery);
+
         // Recent transactions
         const transactionsQuery = `
             SELECT 
@@ -134,10 +151,22 @@ const ReportModel = {
         `;
         const transactionsResult = await db.query(transactionsQuery);
 
+        // Map expense types to friendly names
+        const typeMap = {
+            'maintenance': 'Maintenance',
+            'utility': 'Utilities',
+            'salary': 'Staff',
+            'other': 'Others'
+        };
+
         return {
             totalRevenue: parseFloat(summaryResult.rows[0].total_revenue),
             outstandingDues: parseFloat(summaryResult.rows[0].outstanding_dues),
-            totalExpenses: 0, // Not implemented in current schema
+            totalExpenses: parseFloat(expensesResult.rows[0].total_expenses),
+            expenseDistribution: distributionResult.rows.map(r => ({
+                name: typeMap[r.name] || r.name,
+                value: parseFloat(r.value)
+            })),
             monthlyRevenue: trendsResult.rows.map(r => ({
                 month: r.month,
                 amount: parseFloat(r.amount)

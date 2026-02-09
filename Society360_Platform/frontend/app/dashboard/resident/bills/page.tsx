@@ -74,7 +74,7 @@ export default function ResidentBillsPage() {
 
             console.log('Payment response:', response);
 
-            toast.success(`Payment of $${amountToPay.toFixed(2)} successful via ${paymentMethod.replace('_', ' ')}!`);
+            toast.success(`Payment of ₹${amountToPay.toFixed(2)} successful via ${paymentMethod.replace('_', ' ')}!`);
             setSelectedBill(null);
             setPaymentMethod('credit_card'); // Reset payment method
             fetchBills(); // Refresh bills list
@@ -133,7 +133,7 @@ export default function ResidentBillsPage() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">{bill.bill_type}</p>
-                                            <h3 className="text-2xl font-bold mt-1">${parseFloat(bill.amount as any).toFixed(2)}</h3>
+                                            <h3 className="text-2xl font-bold mt-1">₹{parseFloat(bill.amount as any).toFixed(2)}</h3>
                                         </div>
                                         {getStatusBadge(bill.status)}
                                     </div>
@@ -200,7 +200,7 @@ export default function ResidentBillsPage() {
                                     <tr key={bill.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">{new Date(bill.updated_at || bill.created_at).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 capitalize">{bill.bill_type} - {bill.description || 'Bill Payment'}</td>
-                                        <td className="px-6 py-4 font-medium text-white">${parseFloat(bill.amount as any).toFixed(2)}</td>
+                                        <td className="px-6 py-4 font-medium text-white">₹{parseFloat(bill.amount as any).toFixed(2)}</td>
                                         <td className="px-6 py-4">
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                                 <FiCheckCircle size={12} /> Paid
@@ -224,7 +224,7 @@ export default function ResidentBillsPage() {
                     <div className="space-y-6">
                         <div className="bg-indigo-500/10 rounded-lg p-4 border border-indigo-500/20 text-center">
                             <p className="text-slate-400 text-sm mb-1">Total Amount Due</p>
-                            <p className="text-3xl font-bold text-white">${parseFloat(selectedBill.amount as any).toFixed(2)}</p>
+                            <p className="text-3xl font-bold text-white">₹{parseFloat(selectedBill.amount as any).toFixed(2)}</p>
                             {selectedBill.days_overdue && (
                                 <p className="text-red-400 text-xs mt-2 flex items-center justify-center gap-1">
                                     <FiAlertTriangle /> Includes overdue fines
@@ -281,7 +281,7 @@ export default function ResidentBillsPage() {
                                 className="px-8"
                                 disabled={isPaying}
                             >
-                                {isPaying ? 'Processing...' : `Pay $${parseFloat(selectedBill.amount as any).toFixed(2)}`}
+                                {isPaying ? 'Processing...' : `Pay ₹${parseFloat(selectedBill.amount as any).toFixed(2)}`}
                             </Button>
                         </div>
                     </div>

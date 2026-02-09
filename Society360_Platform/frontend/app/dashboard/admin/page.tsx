@@ -75,7 +75,7 @@ export default function AdminDashboard() {
             />
             <StatCard
               title="Monthly Revenue"
-              value={`$${stats.monthlyRevenue?.toLocaleString() || '0'}`}
+              value={`₹${stats.monthlyRevenue?.toLocaleString() || '0'}`}
               icon={<FiDollarSign size={24} />}
               color="success"
               onClick={() => window.location.href = '/dashboard/admin/finance'}

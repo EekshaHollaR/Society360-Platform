@@ -43,6 +43,12 @@ export const navigationConfig: NavItem[] = [
         roles: ['admin'],
     },
     {
+        name: 'Staff Performance',
+        href: '/dashboard/admin/staff',
+        icon: FiClipboard,
+        roles: ['admin'],
+    },
+    {
         name: 'Reports',
         href: '/dashboard/admin/reports',
         icon: FiFileText,

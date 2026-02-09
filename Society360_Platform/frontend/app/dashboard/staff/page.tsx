@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiTool, FiUserCheck, FiClock, FiCalendar, FiBell } from 'react-icons/fi';
+import { FiTool, FiUserCheck, FiClock, FiCalendar, FiBell, FiDollarSign } from 'react-icons/fi';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -42,7 +42,8 @@ export default function StaffDashboard() {
     const highPriorityTasks = tasks.filter(t => t.priority === 'critical' || t.priority === 'high');
 
     // Calculate stats
-    const assignedTasksCount = tasks.length;
+    const activeTasks = tasks.filter(t => t.status === 'open' || t.status === 'in_progress');
+    const assignedTasksCount = activeTasks.length;
     const todaysVisitorsCount = visitors.filter(v => {
         if (!v.check_in_time) return false;
         const checkIn = new Date(v.check_in_time);
@@ -64,7 +65,7 @@ export default function StaffDashboard() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
-                        title="Assigned Tasks"
+                        title="My Tasks"
                         value={assignedTasksCount.toString()}
                         icon={<FiTool size={24} />}
                         color="primary"
@@ -102,10 +103,10 @@ export default function StaffDashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                {tasks.length === 0 ? (
-                                    <p className="text-sm text-[var(--gray-500)]">No assigned tasks.</p>
+                                {activeTasks.length === 0 ? (
+                                    <p className="text-sm text-[var(--gray-500)]">No pending tasks.</p>
                                 ) : (
-                                    tasks.slice(0, 5).map((task) => (
+                                    activeTasks.slice(0, 5).map((task) => (
                                         <div key={task.id} className="p-3 border border-[var(--gray-200)] rounded-lg">
                                             <div className="flex justify-between items-start mb-2">
                                                 {task.priority === 'critical' || task.priority === 'high' ? (

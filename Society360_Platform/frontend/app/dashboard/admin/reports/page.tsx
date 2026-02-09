@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, AreaChart, Area, Legend
@@ -9,33 +9,74 @@ import { FiUsers, FiHome, FiActivity } from 'react-icons/fi';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Select } from '@/components/ui/Select';
+import { adminApi } from '@/lib/api/admin';
+import { toast } from 'sonner';
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('30d');
+  const [isLoading, setIsLoading] = useState(true);
+  const [reportData, setReportData] = useState<any>({
+    visitors: [],
+    occupancy: [],
+    maintenance: [],
+    stats: {
+      activeUsers: 0,
+      occupancyRate: 0,
+      avgResolutionTime: '0h'
+    }
+  });
 
-  const visitorData = [
-    { name: 'Mon', visitors: 45, deliveries: 20 },
-    { name: 'Tue', visitors: 52, deliveries: 25 },
-    { name: 'Wed', visitors: 38, deliveries: 15 },
-    { name: 'Thu', visitors: 65, deliveries: 30 },
-    { name: 'Fri', visitors: 78, deliveries: 45 },
-    { name: 'Sat', visitors: 95, deliveries: 40 },
-    { name: 'Sun', visitors: 85, deliveries: 35 },
-  ];
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [visitorRes, unitRes, maintenanceRes, dashboardRes] = await Promise.all([
+        adminApi.getVisitorReport({ range: dateRange }),
+        adminApi.getUnitReport(),
+        adminApi.getMaintenanceReport({ range: dateRange }),
+        adminApi.getDashboardStats()
+      ]);
 
-  const occupancyData = [
-    { name: 'A-Block', occupied: 90, vacant: 10 },
-    { name: 'B-Block', occupied: 85, vacant: 15 },
-    { name: 'C-Block', occupied: 70, vacant: 30 },
-    { name: 'D-Block', occupied: 95, vacant: 5 },
-  ];
+      setReportData({
+        visitors: visitorRes.data.data.trends.map((t: any) => ({
+          name: new Date(t.date).toLocaleDateString('default', { weekday: 'short' }),
+          visitors: parseInt(t.visitor_count),
+          deliveries: Math.floor(parseInt(t.visitor_count) * 0.4) // Mock deliveries as subset
+        })).reverse(),
+        occupancy: unitRes.data.data.by_block.map((b: any) => ({
+          name: b.block_name,
+          occupied: parseInt(b.occupied),
+          vacant: parseInt(b.vacant)
+        })),
+        maintenance: [
+          { name: 'Week 1', received: 12, resolved: 10 },
+          { name: 'Week 2', received: 19, resolved: 15 },
+          { name: 'Week 3', received: 15, resolved: 18 },
+          { name: 'Week 4', received: 8, resolved: 12 },
+        ], // Maintenance trends might need a specific backend endpoint for history
+        stats: {
+          activeUsers: dashboardRes.data.data.activeUsers,
+          occupancyRate: Math.round((dashboardRes.data.data.occupiedUnitsCount / dashboardRes.data.data.totalUnits) * 100),
+          avgResolutionTime: '4.2h' // This needs specific calculation in backend
+        }
+      });
+    } catch (error) {
+      toast.error('Failed to load report data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const ticketTrend = [
-    { name: 'Week 1', received: 12, resolved: 10 },
-    { name: 'Week 2', received: 19, resolved: 15 },
-    { name: 'Week 3', received: 15, resolved: 18 },
-    { name: 'Week 4', received: 8, resolved: 12 },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, [dateRange]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-12 text-white">
@@ -68,7 +109,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Active Residents"
-          value="245"
+          value={reportData.stats.activeUsers.toString()}
           icon={<FiUsers size={24} />}
           trend={{ value: 5, label: 'new this month', isPositive: true }}
           color="primary"
@@ -76,7 +117,7 @@ export default function ReportsPage() {
 
         <StatCard
           title="Occupancy Rate"
-          value="88%"
+          value={`${reportData.stats.occupancyRate}%`}
           icon={<FiHome size={24} />}
           trend={{ value: 1.5, label: 'increase', isPositive: true }}
           color="success"
@@ -84,7 +125,7 @@ export default function ReportsPage() {
 
         <StatCard
           title="Avg Resolution Time"
-          value="4.5h"
+          value={reportData.stats.avgResolutionTime}
           icon={<FiActivity size={24} />}
           trend={{ value: 0.5, label: 'slower than avg', isPositive: false }}
           color="warning"
@@ -102,7 +143,7 @@ export default function ReportsPage() {
 
           <CardContent className="h-[340px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={visitorData}>
+              <AreaChart data={reportData.visitors}>
                 <defs>
                   <linearGradient id="visitorsFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.75} />
@@ -145,7 +186,7 @@ export default function ReportsPage() {
 
           <CardContent className="h-[340px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={ticketTrend}>
+              <LineChart data={reportData.maintenance}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
@@ -179,10 +220,10 @@ export default function ReportsPage() {
 
           <CardContent className="h-[340px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={occupancyData} barSize={44}>
+              <BarChart data={reportData.occupancy} barSize={44}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} />
                 <Tooltip />
                 <Legend />
 

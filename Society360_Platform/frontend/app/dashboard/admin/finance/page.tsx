@@ -138,14 +138,14 @@ export default function FinancePage() {
 
                 <StatCard
                     title="Total Revenue"
-                    value={`$${stats?.totalRevenue.toLocaleString() || '0'}`}
+                    value={`₹${stats?.totalRevenue.toLocaleString() || '0'}`}
                     icon={<FiDollarSign size={24} />}
                     trend={{ value: 12.5, label: 'vs last month', isPositive: true }}
                 />
 
                 <StatCard
                     title="Outstanding Dues"
-                    value={`$${stats?.outstandingDues.toLocaleString() || '0'}`}
+                    value={`₹${stats?.outstandingDues.toLocaleString() || '0'}`}
                     icon={<FiTrendingDown size={24} />}
                     trend={{ value: 5.2, label: 'vs last month', isPositive: false }}
                     color="error"
@@ -153,7 +153,7 @@ export default function FinancePage() {
 
                 <StatCard
                     title="Total Expenses"
-                    value={`$${stats?.totalExpenses.toLocaleString() || '0'}`}
+                    value={`₹${stats?.totalExpenses.toLocaleString() || '0'}`}
                     icon={<FiTrendingUp size={24} />}
                     trend={{ value: 2.1, label: 'vs last month', isPositive: true }}
                     color="warning"
@@ -179,7 +179,7 @@ export default function FinancePage() {
                                     axisLine={false}
                                     tickLine={false}
                                     stroke="#94a3b8"
-                                    tickFormatter={(v) => `$${v / 1000}k`}
+                                    tickFormatter={(v) => `₹${v / 1000}k`}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(255,255,255,0.04)' }}
@@ -210,12 +210,14 @@ export default function FinancePage() {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={[
-                                        { name: 'Maintenance', value: 45 },
-                                        { name: 'Utilities', value: 25 },
-                                        { name: 'Staff', value: 20 },
-                                        { name: 'Others', value: 10 },
-                                    ]}
+                                    data={stats?.expenseDistribution && stats.expenseDistribution.length > 0
+                                        ? stats.expenseDistribution
+                                        : [
+                                            { name: 'Maintenance', value: 0 },
+                                            { name: 'Utilities', value: 0 },
+                                            { name: 'Staff', value: 0 },
+                                            { name: 'Others', value: 0 },
+                                        ]}
                                     innerRadius={80}
                                     outerRadius={120}
                                     paddingAngle={5}
@@ -277,7 +279,7 @@ export default function FinancePage() {
                                         </td>
 
                                         <td className="px-6 py-4 font-semibold">
-                                            ${tx.amount.toLocaleString()}
+                                            ₹{tx.amount.toLocaleString()}
                                         </td>
 
                                         <td className="px-6 py-4">
@@ -347,7 +349,7 @@ export default function FinancePage() {
                             />
                             {suggestedAmount && (
                                 <p className="text-xs text-indigo-400 mt-1 flex items-center gap-1">
-                                    <FiInfo /> Suggested: ${suggestedAmount}
+                                    <FiInfo /> Suggested: ₹{suggestedAmount}
                                 </p>
                             )}
                         </div>

@@ -111,7 +111,7 @@ const AdminController = {
     updateUser: async (req, res) => {
         try {
             const { id } = req.params;
-            const { full_name, email, phone_number, profile_picture_url } = req.body;
+            const { first_name, last_name, full_name, email, phone_number, status, profile_picture_url } = req.body;
 
             // Get old user data for audit
             const oldUser = await AdminModel.getUserById(id);
@@ -119,12 +119,26 @@ const AdminController = {
                 return res.status(404).json({ success: false, message: 'User not found' });
             }
 
-            const updatedUser = await AdminModel.updateUser(id, {
+            const updateData = {
+                first_name,
+                last_name,
                 full_name,
                 email,
                 phone_number,
+                status,
                 profile_picture_url
-            });
+            };
+
+            // If role is provided, handle role update
+            const { role } = req.body;
+            if (role) {
+                const roleData = await AdminModel.getRoleByName(role);
+                if (roleData) {
+                    await AdminModel.updateUserRole(id, roleData.id);
+                }
+            }
+
+            const updatedUser = await AdminModel.updateUser(id, updateData);
 
             // Log audit
             await logAudit(req.user.id, AUDIT_ACTIONS.USER_UPDATED, 'users', id, {
@@ -285,6 +299,38 @@ const AdminController = {
         } catch (error) {
             console.error('Error fetching roles:', error);
             res.status(500).json({ success: false, message: 'Failed to fetch roles', error: error.message });
+        }
+    },
+
+    updateSalary: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { base_salary } = req.body;
+
+            if (base_salary === undefined || base_salary < 0) {
+                return res.status(400).json({ success: false, message: 'Invalid salary amount' });
+            }
+
+            const updatedUser = await AdminModel.updateSalary(id, base_salary);
+
+            if (!updatedUser) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+
+            // Log audit
+            await logAudit(req.user.id, AUDIT_ACTIONS.USER_UPDATED, 'users', id, {
+                action: 'SALARY_UPDATE',
+                new_salary: base_salary
+            }, req);
+
+            res.status(200).json({
+                success: true,
+                message: 'Salary updated successfully',
+                data: updatedUser
+            });
+        } catch (error) {
+            console.error('Error updating salary:', error);
+            res.status(500).json({ success: false, message: 'Failed to update salary', error: error.message });
         }
     }
 };

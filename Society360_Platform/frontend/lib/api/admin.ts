@@ -18,6 +18,7 @@ export interface FinanceStats {
     totalRevenue: number;
     outstandingDues: number;
     totalExpenses: number;
+    expenseDistribution: { name: string; value: number }[];
     monthlyRevenue: { month: string; amount: number }[];
     recentTransactions: { id: string; user: string; amount: number; date: string; status: 'paid' | 'pending' }[];
 }
@@ -70,6 +71,10 @@ export const adminApi = {
         return api.patch(`/admin/users/${id}/role`, { role });
     },
 
+    updateSalary: async (id: string, salary: number) => {
+        return api.patch(`/admin/users/${id}/salary`, { base_salary: salary });
+    },
+
     // Audit Logs
     getAuditLogs: async (params?: any) => {
         return api.get('/admin/audit-logs', { params });
@@ -88,9 +93,18 @@ export const adminApi = {
         return api.delete(`/communication/announcements/${id}`);
     },
 
-    // Finance
+    // Reports
     getFinanceStats: async () => {
         return api.get('/admin/reports/finance');
+    },
+    getMaintenanceReport: async (params?: any) => {
+        return api.get('/admin/reports/maintenance', { params });
+    },
+    getVisitorReport: async (params?: any) => {
+        return api.get('/admin/reports/visitors', { params });
+    },
+    getUnitReport: async () => {
+        return api.get('/admin/reports/units');
     },
 
     generateBills: async (data: any) => {

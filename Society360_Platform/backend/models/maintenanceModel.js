@@ -27,7 +27,8 @@ const MaintenanceTicket = {
                 u.floor_number,
                 b.name as block_name,
                 req.full_name as requester_name,
-                staff.full_name as assigned_staff_name
+                staff.full_name as assigned_staff_name,
+                staff.id as assigned_to_id
             FROM maintenance_tickets mt
             LEFT JOIN units u ON mt.unit_id = u.id
             LEFT JOIN blocks b ON u.block_id = b.id
@@ -36,7 +37,13 @@ const MaintenanceTicket = {
             ORDER BY mt.created_at DESC
         `;
         const result = await db.query(query);
-        return result.rows;
+        return result.rows.map(row => ({
+            ...row,
+            unit: {
+                unit_number: row.unit_number,
+                block: row.block_name
+            }
+        }));
     },
 
     findByUnit: async (unit_id) => {
@@ -78,7 +85,13 @@ const MaintenanceTicket = {
             ORDER BY mt.created_at DESC
         `;
         const result = await db.query(query, [staff_id]);
-        return result.rows;
+        return result.rows.map(row => ({
+            ...row,
+            unit: {
+                unit_number: row.unit_number,
+                block: row.block_name
+            }
+        }));
     },
 
     assign: async (id, staff_id) => {
@@ -126,6 +139,28 @@ const MaintenanceTicket = {
             LEFT JOIN expenses e ON e.maintenance_ticket_id = mt.id
             WHERE mt.status = 'resolved' AND e.id IS NULL
             ORDER BY mt.resolved_at ASC
+        `;
+        const result = await db.query(query);
+        return result.rows;
+    },
+
+    getStaffList: async () => {
+        const query = `
+            SELECT 
+                u.id, 
+                u.full_name, 
+                u.email, 
+                u.base_salary,
+                u.phone_number,
+                u.status,
+                COUNT(mt.id) FILTER (WHERE mt.status = 'closed') as tasks_completed,
+                SUM(e.amount) FILTER (WHERE e.expense_type = 'maintenance') as total_bonuses
+            FROM users u
+            LEFT JOIN maintenance_tickets mt ON u.id = mt.assigned_to_id
+            LEFT JOIN expenses e ON u.id = e.staff_id
+            WHERE u.role_id = 2
+            GROUP BY u.id
+            ORDER BY u.full_name ASC
         `;
         const result = await db.query(query);
         return result.rows;

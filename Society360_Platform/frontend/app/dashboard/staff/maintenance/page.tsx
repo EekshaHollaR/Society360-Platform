@@ -11,6 +11,7 @@ import { staffApi, Task } from '@/lib/api/staff';
 export default function StaffMaintenancePage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
     const [currentUser, setCurrentUser] = useState<any>(null);
 
@@ -84,6 +85,30 @@ export default function StaffMaintenancePage() {
                 <p className="text-slate-400">View and manage maintenance requests.</p>
             </div>
 
+            <div className="flex gap-4 border-b border-white/5 pb-1">
+                <button
+                    onClick={() => setActiveTab('active')}
+                    className={`pb-3 text-sm font-medium transition-all relative ${activeTab === 'active' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                >
+                    Active Tasks
+                    {tasks.filter(t => t.status === 'open' || t.status === 'in_progress').length > 0 && (
+                        <span className="ml-2 px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-full text-[10px]">
+                            {tasks.filter(t => t.status === 'open' || t.status === 'in_progress').length}
+                        </span>
+                    )}
+                    {activeTab === 'active' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={`pb-3 text-sm font-medium transition-all relative ${activeTab === 'history' ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                >
+                    Work History
+                    {activeTab === 'history' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" />}
+                </button>
+            </div>
+
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[1, 2, 3, 4].map(i => (
@@ -98,15 +123,25 @@ export default function StaffMaintenancePage() {
                         </Card>
                     ))}
                 </div>
-            ) : tasks.length === 0 ? (
+            ) : tasks.filter(t => {
+                if (activeTab === 'active') return t.status === 'open' || t.status === 'in_progress';
+                return t.status === 'resolved' || t.status === 'closed';
+            }).length === 0 ? (
                 <Card className="p-12 text-center text-slate-500">
                     <FiTool size={48} className="mx-auto mb-4 opacity-20" />
-                    <p className="text-lg font-medium">No maintenance tasks found.</p>
-                    <p className="text-sm">Requests will appear here.</p>
+                    <p className="text-lg font-medium">
+                        {activeTab === 'active' ? 'No active tasks found.' : 'No completed tasks yet.'}
+                    </p>
+                    <p className="text-sm">
+                        {activeTab === 'active' ? 'Assignments will appear here.' : 'Your resolved tasks will appear here.'}
+                    </p>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-white">
-                    {tasks.map(task => {
+                    {tasks.filter(t => {
+                        if (activeTab === 'active') return t.status === 'open' || t.status === 'in_progress';
+                        return t.status === 'resolved' || t.status === 'closed';
+                    }).map(task => {
                         const isAssignedToMe = task.assigned_to_id === currentUser?.id;
                         const isUnassigned = task.status === 'open';
                         const canInteract = isAssignedToMe || isUnassigned;
@@ -137,7 +172,7 @@ export default function StaffMaintenancePage() {
                                 <p className="text-slate-400 text-sm mb-4 flex-1">{task.description}</p>
 
                                 {/* Assignment Info */}
-                                {!isUnassigned && (
+                                {!isUnassigned && task.status !== 'closed' && (
                                     <div className="mb-4 flex items-center gap-2 text-xs">
                                         <span className="text-slate-500">Handling by:</span>
                                         <Badge variant={isAssignedToMe ? 'success' : 'info'} className="text-[10px] py-0">
@@ -222,9 +257,18 @@ export default function StaffMaintenancePage() {
                                         </div>
                                     )}
                                     {task.status === 'closed' && (
-                                        <p className="text-sm text-slate-500 font-medium flex items-center italic">
-                                            <FiCheckCircle className="mr-2" /> Task closed & paid.
-                                        </p>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center text-sm">
+                                                <p className="text-slate-500 font-medium flex items-center italic">
+                                                    <FiCheckCircle className="mr-2" /> Task closed & paid.
+                                                </p>
+                                                {task.actual_cost && (
+                                                    <p className="text-xs text-slate-500">
+                                                        Total: <span className="text-white font-bold">${(parseFloat(task.actual_cost as any) * 1.1).toFixed(2)}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </Card>

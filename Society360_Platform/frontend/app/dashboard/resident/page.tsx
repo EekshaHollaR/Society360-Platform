@@ -79,7 +79,7 @@ export default function ResidentDashboard() {
                     />
                     <StatCard
                         title="Outstanding Bill"
-                        value={`$${outstandingAmount.toFixed(2)}`}
+                        value={`₹${outstandingAmount.toFixed(2)}`}
                         icon={<FiDollarSign size={24} />}
                         color="error"
                         onClick={() => window.location.href = '/dashboard/resident/bills'}

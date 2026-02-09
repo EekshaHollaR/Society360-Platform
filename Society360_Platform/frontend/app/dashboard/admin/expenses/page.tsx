@@ -268,8 +268,8 @@ export default function AdminExpensesPage() {
                                                     <div className="text-xs text-slate-500">Unit {ticket.unit_number}, {ticket.block_name}</div>
                                                 </td>
                                                 <td className="py-4 text-slate-300">{ticket.staff_name}</td>
-                                                <td className="py-4 text-slate-300">${cost.toFixed(2)}</td>
-                                                <td className="py-4 font-bold text-amber-400">${total.toFixed(2)}</td>
+                                                <td className="py-4 text-slate-300">₹{cost.toFixed(2)}</td>
+                                                <td className="py-4 font-bold text-amber-400">₹{total.toFixed(2)}</td>
                                                 <td className="py-4 text-right">
                                                     <Button
                                                         size="sm"
@@ -298,7 +298,7 @@ export default function AdminExpensesPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Total Expenses</p>
-                                    <h3 className="text-2xl font-bold mt-1">${stats.total_expenses.toFixed(2)}</h3>
+                                    <h3 className="text-2xl font-bold mt-1">₹{stats.total_expenses.toFixed(2)}</h3>
                                 </div>
                                 <FiDollarSign size={32} className="text-blue-400 opacity-50" />
                             </div>
@@ -310,7 +310,7 @@ export default function AdminExpensesPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Total Paid</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-emerald-400">${stats.total_paid.toFixed(2)}</h3>
+                                    <h3 className="text-2xl font-bold mt-1 text-emerald-400">₹{stats.total_paid.toFixed(2)}</h3>
                                 </div>
                                 <FiCheckCircle size={32} className="text-emerald-400 opacity-50" />
                             </div>
@@ -322,7 +322,7 @@ export default function AdminExpensesPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-400">Pending</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-amber-400">${stats.total_pending.toFixed(2)}</h3>
+                                    <h3 className="text-2xl font-bold mt-1 text-amber-400">₹{stats.total_pending.toFixed(2)}</h3>
                                 </div>
                                 <FiClock size={32} className="text-amber-400 opacity-50" />
                             </div>
@@ -435,7 +435,7 @@ export default function AdminExpensesPage() {
                                             <td className="py-4">{getTypeBadge(expense.expense_type)}</td>
                                             <td className="py-4 capitalize">{expense.category}</td>
                                             <td className="py-4">{expense.staff_name || '-'}</td>
-                                            <td className="py-4 font-medium">${parseFloat(expense.amount as any).toFixed(2)}</td>
+                                            <td className="py-4 font-medium">₹{parseFloat(expense.amount as any).toFixed(2)}</td>
                                             <td className="py-4">{getStatusBadge(expense.payment_status)}</td>
                                             <td className="py-4">
                                                 {expense.payment_status === 'pending' && (
@@ -495,7 +495,7 @@ export default function AdminExpensesPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Amount ($)</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Amount (₹)</label>
                         <input
                             type="number"
                             step="0.01"

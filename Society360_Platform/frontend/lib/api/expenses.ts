@@ -21,6 +21,8 @@ export interface Expense {
     recorded_by_id?: string;
     recorded_by_name?: string;
     notes?: string;
+    base_amount?: number;
+    bonus_amount?: number;
     created_at: string;
     updated_at?: string;
 }
@@ -155,6 +157,10 @@ export const expenseApi = {
 
     payMaintenanceTicket: async (id: string, bonus_percentage: number = 10) => {
         return api.post(`/maintenance/${id}/pay`, { bonus_percentage });
+    },
+
+    getStaffStats: async () => {
+        return api.get('/maintenance/staff-stats');
     }
 };
 
