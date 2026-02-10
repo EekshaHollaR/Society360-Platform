@@ -94,7 +94,8 @@ export default function RegisterPage() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
+
                         {(() => {
                             const serverErrorMsg = Object.values(errors).find(
                                 (e: any) => e?.type === 'server'

@@ -25,10 +25,9 @@ export const Card: React.FC<CardProps> = ({
         p-6 md:p-8
         shadow-[0_12px_48px_rgba(0,0,0,0.35)]
         transition-all duration-300 ease-out
-        ${
-          hover
-            ? 'hover:-translate-y-1 hover:shadow-[0_20px_70px_rgba(0,0,0,0.55)] cursor-pointer'
-            : ''
+        ${hover
+          ? 'hover:-translate-y-1 hover:shadow-[0_20px_70px_rgba(0,0,0,0.55)] cursor-pointer'
+          : ''
         }
         ${className}
       `}
