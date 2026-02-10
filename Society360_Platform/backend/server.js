@@ -1,6 +1,11 @@
-const dotenv = require('dotenv');
-// Load env vars
-dotenv.config();
+try {
+    require('dotenv').config();
+} catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+        console.warn('dotenv module not found, please run npm install');
+    }
+}
+
 
 const app = require('./app');
 const db = require('./config/db');

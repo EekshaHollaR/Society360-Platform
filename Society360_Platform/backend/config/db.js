@@ -1,7 +1,10 @@
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
+try {
+  require('dotenv').config();
+} catch (err) {
+  // Silent in production where env vars are usually pre-set
+}
 
-dotenv.config();
 
 const pool = new Pool({
   user: process.env.DB_USER,
