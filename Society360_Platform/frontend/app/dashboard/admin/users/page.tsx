@@ -22,7 +22,7 @@ export default function UserManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } =
-        useForm<User | any>();
+        useForm<User>();
 
     const fetchUsers = async () => {
         try {
