@@ -20,6 +20,7 @@ app.use(hpp()); // Prevent HTTP Parameter Pollution attacks
 // CORS configuration - be specific in production
 const allowedOrigins = [
     process.env.FRONTEND_URL,
+    'https://society360-platform-5khg.vercel.app',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
@@ -31,10 +32,12 @@ app.use(cors({
     origin: function (origin, callback) {
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1 && process.env.NODE_ENV !== 'production') {
-            return callback(null, true); // Allow all in dev if not in list
+
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+            return callback(null, true);
+        } else {
+            return callback(new Error('Not allowed by CORS'));
         }
-        return callback(null, true);
     },
     credentials: true
 }));
