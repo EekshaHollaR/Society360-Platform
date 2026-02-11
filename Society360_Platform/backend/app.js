@@ -22,6 +22,7 @@ const allowedOrigins = [
     process.env.FRONTEND_URL,
     'https://society360-platform-5khg.vercel.app',
     'https://society360-platform-1.onrender.com',
+    'https://society360-platform-5khg-6eiixzwu2-eekshahollars-projects.vercel.app',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
