@@ -49,6 +49,16 @@ export interface Notification {
     created_at: string;
 }
 
+export interface Announcement {
+    id: string;
+    title: string;
+    content: string;
+    priority: 'high' | 'normal' | 'low';
+    category: string;
+    created_at: string;
+    is_active: boolean;
+}
+
 // API Service
 export const residentApi = {
     // Visitor Management
