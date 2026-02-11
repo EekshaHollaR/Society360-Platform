@@ -21,6 +21,7 @@ app.use(hpp()); // Prevent HTTP Parameter Pollution attacks
 const allowedOrigins = [
     process.env.FRONTEND_URL,
     'https://society360-platform-5khg.vercel.app',
+    'https://society360-platform-1.onrender.com',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
