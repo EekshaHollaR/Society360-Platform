@@ -5,7 +5,7 @@ It replaces inefficient manual processes such as visitor registers, maintenance 
 
 The platform enables **Residents, Staff, and Administrators** to interact through role-based dashboards, improving transparency, security, and operational efficiency.
 
-This Project is deployed on Render and Vercel, It can be accessed here: 
+This Project is deployed on Render and Vercel, It can be accessed here:  
 [![Live Demo](https://img.shields.io/badge/Live-Demo-green)](https://society360-platform-5khg.vercel.app/)
 
 ---
@@ -276,10 +276,11 @@ npm install
 3️⃣ Configure Environment Variables
 
 Create .env file:
-
+```bash
 PORT=5000
 DATABASE_URL=postgresql://username:password@localhost:5432/society360
 JWT_SECRET=your_secret_key
+```
 
 4️⃣ Run the Application
 
@@ -293,19 +294,19 @@ Frontend
 npm run dev
 ```
 ## 📈 Future Enhancements
-# Short Term
+### Short Term
 - Email verification
 - Password recovery
 - Two-factor authentication (2FA)
 - Push notifications
 
-# Medium Term
+### Medium Term
 - Payment gateway integration
 - Amenity booking
 - Parking management
 - Advanced analytics dashboards
 
-# Long Term
+### Long Term
 - Multi-society support
 - Microservices architecture
 - AI-based predictive maintenance
@@ -334,4 +335,5 @@ Through this project, hands-on experience was gained in:
 Eeksha Holla R
 Full Stack Developer
 Internship Project – Civora Nexus
+
 
